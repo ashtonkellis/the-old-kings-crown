@@ -1,0 +1,1204 @@
+/* ═══════════════════════════════════════════════════════════════
+   THE OLD KING'S CROWN — Board CSS
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Custom Properties ── */
+:root {
+  /* Base */
+  --bg:              #080a0f;
+  --board-bg:        #0d150f;
+  --board-border:    #c9a84c;
+  --gold:            #c9a84c;
+  --gold-light:      #e8c96a;
+  --gold-dark:       #8a6018;
+  --gold-glow:       rgba(201, 168, 76, 0.35);
+  --parchment:       #c4a87a;
+  --parchment-bg:    #1a1208;
+  --parchment-dark:  #a08060;
+
+  /* Text */
+  --text-primary:    #e8d5a8;
+  --text-secondary:  #9a8060;
+  --text-faint:      #5a4a30;
+
+  /* Faction colours */
+  --nobility:        #1e4a8a;
+  --nobility-mid:    #2563a8;
+  --nobility-light:  #5b9bd5;
+  --clans:           #0d5a48;
+  --clans-mid:       #0d7860;
+  --clans-light:     #2db89a;
+  --uprising:        #7a1515;
+  --uprising-mid:    #a82020;
+  --uprising-light:  #e05050;
+  --gathering:       #3a1065;
+  --gathering-mid:   #6020a0;
+  --gathering-light: #a060e0;
+
+  /* Regions */
+  --highlands-tint:  rgba(20, 60, 30, 0.5);
+  --plateau-tint:    rgba(60, 45, 10, 0.5);
+  --lowlands-tint:   rgba(25, 15, 40, 0.5);
+
+  /* UI */
+  --border-thin:     1px solid var(--gold-dark);
+  --border-med:      2px solid var(--gold);
+  --border-thick:    3px solid var(--gold-light);
+  --radius-sm:       4px;
+  --radius-md:       8px;
+  --radius-lg:       12px;
+  --shadow-sm:       0 2px 6px rgba(0,0,0,0.5);
+  --shadow-md:       0 4px 14px rgba(0,0,0,0.7);
+  --shadow-lg:       0 8px 28px rgba(0,0,0,0.9);
+  --glow-hover:      0 0 10px 3px var(--gold-glow);
+  --glow-active:     0 0 16px 5px rgba(201,168,76,0.6);
+
+  /* Sizing */
+  --card-w:          62px;
+  --card-h:          88px;
+  --kc-w:            80px;
+  --kc-h:            108px;
+  --loc-w:           138px;
+  --loc-h:           148px;
+  --token-sz:        30px;
+  --sup-sz:          24px;
+  --herald-sz:       28px;
+}
+
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 13px; scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: 'Crimson Text', Georgia, serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ══════════════════════════ TOOLTIP ══════════════════════════ */
+#tooltip {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  background: rgba(10, 8, 4, 0.95);
+  border: 1px solid var(--gold-dark);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  max-width: 240px;
+  font-family: 'Crimson Text', serif;
+  font-size: 12px;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  transition: opacity 0.15s;
+  line-height: 1.4;
+}
+#tooltip.visible { opacity: 1; }
+
+/* ══════════════════════════ HEADER ══════════════════════════ */
+#game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 24px;
+  background: linear-gradient(180deg, rgba(12,10,6,1) 0%, rgba(12,10,6,0.85) 100%);
+  border-bottom: var(--border-med);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+#game-title {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+.title-the {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--gold-dark);
+}
+.title-main {
+  font-family: 'Cinzel', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gold-light);
+  letter-spacing: 1px;
+  text-shadow: 0 0 12px rgba(201,168,76,0.4);
+}
+
+#game-status { display: flex; gap: 12px; }
+.status-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 14px;
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
+  background: rgba(201,168,76,0.06);
+  cursor: default;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.status-chip.active-chip { cursor: pointer; border-color: var(--gold); }
+.status-chip.active-chip:hover { background: rgba(201,168,76,0.14); box-shadow: var(--glow-hover); }
+.chip-label {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.chip-value {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gold-light);
+}
+
+/* ══════════════════════════ PLAYER BOARDS ══════════════════════════ */
+.player-board {
+  width: 100%;
+  background: rgba(10, 8, 6, 0.9);
+  border: var(--border-thin);
+  position: relative;
+}
+.opponent-board {
+  border-bottom: var(--border-med);
+  background: linear-gradient(180deg, rgba(13, 90, 72, 0.12) 0%, rgba(8,8,10,0.95) 100%);
+}
+.current-player-board {
+  border-top: var(--border-med);
+  background: linear-gradient(0deg, rgba(30, 74, 138, 0.14) 0%, rgba(8,8,10,0.95) 100%);
+}
+
+/* Banner */
+.board-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 16px;
+  border-bottom: var(--border-thin);
+}
+.clans-banner    { background: linear-gradient(90deg, rgba(13,90,72,0.45) 0%, transparent 60%); }
+.nobility-banner { background: linear-gradient(90deg, rgba(30,74,138,0.45) 0%, transparent 60%); }
+.board-banner-label {
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gold-light);
+}
+.board-banner-sub {
+  font-style: italic;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.board-banner-supply {
+  margin-left: auto;
+  display: flex;
+  gap: 14px;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+.supply-influence { color: var(--gold-light); }
+.supply-lore      { color: #5bb8a0; }
+.hand-size-badge  { color: var(--text-secondary); font-size: 12px; }
+
+/* Board body */
+.board-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  overflow-x: auto;
+}
+
+/* Board clusters */
+.board-cluster {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.board-cluster--left  { width: 120px; }
+.board-cluster--center { width: 340px; }
+.board-cluster--right  { width: 130px; }
+
+/* ── Generic Zone ── */
+.board-zone {
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
+  padding: 6px;
+  background: rgba(20,16,8,0.6);
+  position: relative;
+  transition: box-shadow 0.18s, border-color 0.18s;
+  cursor: pointer;
+}
+.board-zone:hover {
+  box-shadow: var(--glow-hover);
+  border-color: var(--gold);
+}
+.zone-label {
+  display: block;
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+  text-align: center;
+}
+.zone-count {
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  color: var(--gold-dark);
+}
+
+/* Deck / Discard visuals */
+.deck-zone, .discard-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 72px;
+  justify-content: center;
+}
+.card-back-stack {
+  width: 40px;
+  height: 52px;
+  background: repeating-linear-gradient(
+    135deg,
+    rgba(201,168,76,0.08) 0px,
+    rgba(201,168,76,0.08) 2px,
+    rgba(10,8,4,0.8) 2px,
+    rgba(10,8,4,0.8) 6px
+  );
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.5), 3px 3px 0 rgba(0,0,0,0.3);
+}
+.card-front-placeholder {
+  width: 40px;
+  height: 52px;
+  background: rgba(30,20,8,0.9);
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
+}
+.card-front-placeholder.small {
+  width: 34px;
+  height: 46px;
+}
+
+/* Herald zone */
+.herald-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 5px;
+  height: 58px;
+  justify-content: center;
+}
+.herald-piece {
+  font-size: 20px;
+  line-height: 1;
+  filter: drop-shadow(0 0 4px var(--gold-glow));
+}
+.nobility-herald { color: var(--nobility-light); }
+.clans-herald    { color: var(--clans-light); }
+
+/* Favour zone */
+.favour-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 5px;
+  height: 52px;
+  justify-content: center;
+}
+.favour-disc { font-size: 18px; }
+.empty-disc  { opacity: 0.3; }
+
+/* Kingdom Card slots on player board */
+.kingdom-cards-zone { padding: 6px; }
+.kc-slots {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+  justify-content: center;
+}
+.kc-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  cursor: pointer;
+}
+.kc-slot:hover .kc-card,
+.kc-slot:hover .occupying-card { box-shadow: var(--glow-hover); border-color: var(--gold); }
+.kc-card {
+  width: var(--kc-w);
+  height: var(--kc-h);
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
+  background: rgba(26,18,8,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: box-shadow 0.18s, border-color 0.18s;
+  position: relative;
+}
+.kc-card.empty { border-style: dashed; }
+.occupying-card {
+  width: var(--kc-w);
+  height: 32px;
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
+  background: rgba(16,12,4,0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: box-shadow 0.18s, border-color 0.18s;
+}
+.occupying-card.empty { border-style: dashed; }
+.empty-hint {
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  color: var(--text-faint);
+  text-align: center;
+  padding: 2px;
+}
+
+/* Tactic tiles */
+.tactics-zone { padding: 6px; }
+.tactic-tiles { display: flex; gap: 5px; margin-top: 4px; }
+.tactic-tile {
+  width: 76px;
+  height: 52px;
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
+  background: rgba(20,14,6,0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  transition: box-shadow 0.18s, border-color 0.18s, opacity 0.2s;
+  padding: 4px;
+  text-align: center;
+}
+.tactic-tile:hover { box-shadow: var(--glow-hover); border-color: var(--gold); }
+.tactic-tile.exhausted { opacity: 0.35; filter: grayscale(0.8); }
+.tactic-name {
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+.tactic-state {
+  font-size: 9px;
+  color: #6a9a60;
+  font-style: italic;
+}
+.tactic-tile.exhausted .tactic-state { color: var(--text-faint); }
+
+/* Supporters */
+.supporters-zone { padding: 6px; }
+.supporter-pieces { display: flex; gap: 6px; justify-content: center; margin-top: 4px; flex-wrap: wrap; }
+.supporter-piece {
+  width: var(--sup-sz);
+  height: var(--sup-sz);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  border-radius: 50%;
+  border: var(--border-thin);
+  background: rgba(20,14,6,0.8);
+  cursor: pointer;
+  transition: box-shadow 0.18s, transform 0.15s;
+  user-select: none;
+}
+.supporter-piece:hover { box-shadow: var(--glow-hover); transform: scale(1.15); }
+.supporter-piece.deployed { opacity: 0.4; border-style: dashed; }
+.nobility-sup { border-color: var(--nobility-mid); color: var(--nobility-light); }
+.clans-sup    { border-color: var(--clans-mid);    color: var(--clans-light); }
+
+/* Hand */
+.hand-zone {
+  flex: 1;
+  min-width: 0;
+  padding: 6px;
+}
+.hand-cards {
+  display: flex;
+  gap: 5px;
+  margin-top: 4px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+/* Site of Power */
+.site-of-power-zone { padding: 6px; height: 100%; }
+.sop-cards { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+.sop-card {
+  width: 110px;
+  height: 40px;
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
+  background: rgba(26,18,8,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: box-shadow 0.18s, border-color 0.18s;
+}
+.sop-card:hover { box-shadow: var(--glow-hover); border-color: var(--gold); }
+.sop-card.hq-card { border-style: dashed; background: rgba(10,14,24,0.7); }
+.sop-hint {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  color: var(--text-faint);
+}
+
+/* ══════════════════════════ CARDS ══════════════════════════ */
+.card {
+  width: var(--card-w);
+  height: var(--card-h);
+  border-radius: var(--radius-sm);
+  border: var(--border-thin);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: box-shadow 0.18s, transform 0.15s, border-color 0.18s;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.card:hover {
+  box-shadow: var(--glow-hover);
+  transform: translateY(-3px);
+  border-color: var(--gold);
+  z-index: 10;
+}
+
+/* Card back */
+.card-back {
+  background:
+    repeating-linear-gradient(
+      45deg,
+      rgba(201,168,76,0.06) 0px, rgba(201,168,76,0.06) 2px,
+      transparent 2px, transparent 8px
+    ),
+    rgba(14,10,4,0.95);
+  border-color: var(--gold-dark);
+}
+.card-back::after {
+  content: '👑';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 18px;
+  opacity: 0.2;
+}
+
+/* Faction card slot backs (in regions) */
+.faction-card-slot {
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(201,168,76,0.05) 0px, rgba(201,168,76,0.05) 2px,
+      transparent 2px, transparent 7px
+    ),
+    rgba(14,10,4,0.9);
+  border-color: var(--gold-dark);
+  width: var(--card-w);
+  height: var(--card-h);
+}
+.slot-player-label {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  border-radius: 3px;
+  padding: 1px 4px;
+  background: rgba(0,0,0,0.6);
+}
+.nobility-label { color: var(--nobility-light); }
+.clans-label    { color: var(--clans-light); }
+
+/* Card front */
+.card-front {
+  background: rgba(20,14,6,0.97);
+  border-color: var(--gold-dark);
+  padding: 4px;
+  gap: 2px;
+}
+.card-strength {
+  font-family: 'Cinzel', serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gold-light);
+  line-height: 1;
+}
+.card-archetype { font-size: 13px; line-height: 1; }
+.heir-archetype { font-size: 15px; }
+.card-name {
+  font-family: 'Cinzel', serif;
+  font-size: 7.5px;
+  color: var(--text-primary);
+  line-height: 1.2;
+  flex: 1;
+  overflow: hidden;
+}
+.card-command {
+  font-size: 8px;
+  color: #d4a030;
+  font-weight: 600;
+}
+.card-trait {
+  font-size: 7.5px;
+  font-style: italic;
+}
+.trait-resilient   { color: #6aaa60; }
+.trait-invulnerable{ color: #4090d0; }
+.trait-pathfinder  { color: #8060d0; }
+
+.heir-card { border-color: var(--gold); box-shadow: 0 0 6px rgba(201,168,76,0.25); }
+
+/* Bid area cards */
+.card-face-down-bid {
+  width: var(--card-w);
+  height: var(--card-h);
+  border: 1px dashed var(--gold-dark);
+  border-radius: var(--radius-sm);
+  background: rgba(14,10,4,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  color: var(--text-faint);
+  cursor: pointer;
+  transition: box-shadow 0.18s, border-color 0.18s;
+}
+.card-face-down-bid:hover { box-shadow: var(--glow-hover); border-color: var(--gold); border-style: solid; }
+
+/* ══════════════════════════ KINGDOM BOARD ══════════════════════════ */
+#kingdom-board {
+  width: 100%;
+  max-width: 1060px;
+  margin: 0 auto;
+  background: var(--board-bg);
+  border-left: var(--border-med);
+  border-right: var(--border-med);
+  box-shadow: 0 0 40px rgba(0,0,0,0.8), inset 0 0 60px rgba(0,0,0,0.4);
+  position: relative;
+}
+
+.section-title {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold-dark);
+  padding: 6px 12px 4px;
+  border-bottom: var(--border-thin);
+  background: rgba(0,0,0,0.3);
+}
+
+/* ── Order Track ── */
+#order-track {
+  border-bottom: var(--border-thin);
+  padding: 8px 12px;
+  background: rgba(0,0,0,0.25);
+}
+.order-slots {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 4px;
+}
+.order-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  position: relative;
+}
+.order-marker {
+  width: 90px;
+  height: 34px;
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  cursor: pointer;
+  transition: box-shadow 0.18s, border-color 0.18s;
+  padding: 3px;
+}
+.order-marker:hover { box-shadow: var(--glow-hover); border-color: var(--gold); }
+.nobility-marker { background: rgba(30,74,138,0.35); border-color: var(--nobility-mid); }
+.clans-marker    { background: rgba(13,90,72,0.35);  border-color: var(--clans-mid); }
+.empty-marker    { background: rgba(20,16,8,0.3); border-style: dashed; opacity: 0.4; }
+.order-pos {
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  color: var(--text-secondary);
+}
+.order-faction {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.active-player-marker {
+  font-size: 11px;
+  color: var(--gold-light);
+  animation: pulse-star 1.8s ease-in-out infinite;
+}
+@keyframes pulse-star {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.6; transform: scale(0.85); }
+}
+
+/* ── Councils Tile ── */
+#councils-tile {
+  border-bottom: var(--border-thin);
+  padding: 8px 12px;
+  background: rgba(0,0,0,0.15);
+}
+.councils { display: flex; gap: 8px; margin-top: 6px; }
+.council {
+  flex: 1;
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
+  background: rgba(16,12,6,0.8);
+  padding: 8px;
+  cursor: pointer;
+  transition: box-shadow 0.18s, border-color 0.18s;
+  min-height: 90px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.council:hover { box-shadow: var(--glow-hover); border-color: var(--gold); }
+.council-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border-bottom: var(--border-thin);
+  padding-bottom: 4px;
+}
+.council-icon { font-size: 14px; }
+.council-name {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--gold-light);
+}
+.council-cards-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+}
+.council-card-slot {
+  width: 46px;
+  height: 32px;
+  border: 1px dashed var(--text-faint);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.council-card-slot.empty::after {
+  content: '+';
+  font-size: 14px;
+  color: var(--text-faint);
+}
+.council-votes {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  color: var(--text-secondary);
+  text-align: right;
+}
+.council-ability {
+  font-size: 10px;
+  color: var(--text-secondary);
+  font-style: italic;
+  line-height: 1.3;
+}
+
+/* ── Great Road ── */
+#great-road { border-bottom: var(--border-thin); padding: 8px 12px; }
+.great-road-inner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.road-divider {
+  width: 1px;
+  height: 110px;
+  background: var(--gold-dark);
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+.kingdom-discard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 5px;
+  width: 70px;
+  flex-shrink: 0;
+}
+.kingdom-deck {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 5px;
+  width: 70px;
+  flex-shrink: 0;
+}
+.kc-road-slot {
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.kc-road-slot:hover { transform: translateY(-4px); }
+.kc-road-slot:hover .kc-road-card { box-shadow: var(--glow-hover); border-color: var(--gold); }
+.kc-road-card {
+  width: var(--kc-w);
+  height: var(--kc-h);
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
+  background: rgba(22,16,6,0.95);
+  transition: box-shadow 0.18s, border-color 0.18s;
+  overflow: hidden;
+}
+.kc-road-card-inner {
+  padding: 6px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.kc-suit { font-size: 13px; line-height: 1; }
+.kc-suit--coins  { color: var(--gold-light); }
+.kc-suit--scroll { color: #8aaad0; }
+.kc-suit--sword  { color: #b0a090; }
+.kc-title {
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+.kc-text {
+  font-size: 8.5px;
+  color: var(--text-secondary);
+  line-height: 1.3;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Map ── */
+#map {
+  border-bottom: var(--border-thin);
+  padding: 8px 12px;
+  position: relative;
+}
+
+#season-track {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 5;
+}
+.season-step {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 1px;
+  padding: 4px 8px;
+  border: var(--border-thin);
+  border-radius: 3px;
+  color: var(--text-faint);
+  background: rgba(0,0,0,0.5);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.season-step:hover { border-color: var(--gold-dark); color: var(--text-secondary); }
+.season-step.active {
+  color: var(--gold-light);
+  border-color: var(--gold);
+  background: rgba(201,168,76,0.12);
+  box-shadow: 0 0 6px rgba(201,168,76,0.2);
+}
+
+/* Region rows */
+.region {
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
+  margin-bottom: 6px;
+  overflow: visible;
+  transition: border-color 0.2s;
+}
+.region:last-child { margin-bottom: 0; }
+#region-highlands { background: linear-gradient(90deg, var(--highlands-tint) 0%, transparent 100%); border-color: rgba(60,100,60,0.5); }
+#region-plateau   { background: linear-gradient(90deg, var(--plateau-tint)   0%, transparent 100%); border-color: rgba(100,80,20,0.5); }
+#region-lowlands  { background: linear-gradient(90deg, var(--lowlands-tint)  0%, transparent 100%); border-color: rgba(60,40,80,0.5); }
+
+.region-label-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  border-bottom: var(--border-thin);
+  background: rgba(0,0,0,0.25);
+}
+.region-name {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gold-light);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+/* Clash marker */
+.clash-marker-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.clash-marker {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(10,6,2,0.95);
+  border: 2px solid var(--gold-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gold-light);
+  transition: box-shadow 0.18s, border-color 0.18s;
+}
+.clash-marker:hover { box-shadow: var(--glow-hover); border-color: var(--gold-light); }
+
+/* Region body layout */
+.region-body {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+}
+
+/* Player card slots in regions */
+.region-card-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex-shrink: 0;
+}
+.region-card-slot {
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.region-card-slot:hover { transform: scale(1.04); }
+.region-card-slot:hover .faction-card-slot {
+  box-shadow: var(--glow-hover);
+  border-color: var(--gold);
+}
+
+/* Supporters in region */
+.region-supporters {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 50px;
+  flex-shrink: 0;
+}
+.sup-label {
+  font-family: 'Cinzel', serif;
+  font-size: 7px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.sup-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  max-width: 50px;
+  justify-content: center;
+}
+.sup-piece {
+  font-size: 11px;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid;
+}
+.sup-nobility { border-color: var(--nobility-mid); color: var(--nobility-light); }
+.sup-clans    { border-color: var(--clans-mid);    color: var(--clans-light); }
+
+/* Locations */
+.locations {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+}
+.location {
+  flex: 1;
+  width: var(--loc-w);
+  min-height: var(--loc-h);
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
+  background: rgba(26,18,8,0.85);
+  cursor: pointer;
+  transition: box-shadow 0.18s, border-color 0.18s;
+  position: relative;
+  overflow: hidden;
+}
+.location:hover { box-shadow: var(--glow-hover); border-color: var(--gold); }
+/* Subtle terrain tints for locations */
+#loc-castle      { border-color: rgba(100,90,60,0.6); }
+#loc-wilderness  { border-color: rgba(40,80,40,0.6); }
+#loc-harvest-field { border-color: rgba(120,100,30,0.7); }
+#loc-battlefield { border-color: rgba(100,40,30,0.7); }
+#loc-shrine      { border-color: rgba(60,50,100,0.6); }
+#loc-necropolis  { border-color: rgba(50,20,60,0.7); }
+.location-inner {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 100%;
+}
+.location-name {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--gold-light);
+  border-bottom: var(--border-thin);
+  padding-bottom: 3px;
+  letter-spacing: 0.5px;
+}
+.herald-slot {
+  width: var(--herald-sz);
+  height: var(--herald-sz);
+  border: 1px dashed var(--gold-dark);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: box-shadow 0.18s, border-color 0.18s;
+  align-self: flex-end;
+}
+.herald-slot:hover { box-shadow: 0 0 6px rgba(201,168,76,0.4); border-color: var(--gold); }
+.herald-empty { font-size: 10px; color: var(--text-faint); }
+.herald-placed { font-size: 16px; }
+.location-reward {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 2px;
+}
+.location-reward span {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  color: var(--gold-light);
+}
+.reward-extra {
+  font-family: 'Crimson Text', serif !important;
+  font-size: 10px !important;
+  color: var(--text-secondary) !important;
+  font-style: italic;
+  line-height: 1.2;
+}
+.faction-markers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-top: auto;
+  min-height: 14px;
+}
+.faction-marker-piece {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  border: 1px solid;
+}
+.faction-marker-piece.nobility { background: var(--nobility); border-color: var(--nobility-mid); }
+.faction-marker-piece.clans    { background: var(--clans);    border-color: var(--clans-mid); }
+
+/* Kingdom's Favour disc on Harvest Field */
+.kingdoms-favour-disc {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid var(--gold);
+  border-radius: 4px;
+  padding: 2px 6px;
+  width: fit-content;
+  cursor: pointer;
+  transition: box-shadow 0.18s;
+}
+.kingdoms-favour-disc:hover { box-shadow: var(--glow-hover); }
+.favour-icon { font-size: 12px; }
+.favour-uses {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--gold-light);
+}
+
+/* ── Board Bottom ── */
+#board-bottom {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(0,0,0,0.3);
+  border-top: var(--border-thin);
+}
+.reserve-zone { display: flex; flex-direction: column; align-items: center; padding: 8px; flex-shrink: 0; width: 120px; }
+.token-stacks { display: flex; gap: 12px; margin-top: 4px; }
+.token-stack  { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.token {
+  width: var(--token-sz);
+  height: var(--token-sz);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  border: var(--border-thin);
+  cursor: pointer;
+  transition: box-shadow 0.18s, transform 0.15s;
+}
+.token:hover { box-shadow: var(--glow-hover); transform: scale(1.1); }
+.token-influence { background: rgba(30,24,6,0.9); border-color: var(--gold-dark); }
+.token-lore      { background: rgba(10,18,24,0.9); border-color: #2a6060; }
+.token-count { font-family: 'Cinzel', serif; font-size: 12px; color: var(--text-primary); }
+.token-label { font-size: 9px; color: var(--text-faint); letter-spacing: 0.5px; }
+
+.round-track-zone { display: flex; flex-direction: column; align-items: center; padding: 8px; flex: 1; }
+.round-slots { display: flex; gap: 8px; margin-top: 6px; align-items: center; }
+.round-slot {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: var(--border-thin);
+  background: rgba(16,12,6,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: box-shadow 0.18s, border-color 0.18s;
+  position: relative;
+  flex-direction: column;
+  gap: 1px;
+}
+.round-slot:hover { box-shadow: var(--glow-hover); border-color: var(--gold); color: var(--text-primary); }
+.round-slot.active {
+  border-color: var(--gold);
+  color: var(--gold-light);
+  box-shadow: 0 0 10px rgba(201,168,76,0.35);
+  background: rgba(201,168,76,0.1);
+}
+.round-slot.active span { font-size: 10px; }
+.round-marker { font-size: 11px; }
+.round-slot.dimmed { opacity: 0.3; }
+
+.lost-pile-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px;
+  width: 80px;
+  flex-shrink: 0;
+}
+.pile-visual {
+  width: 44px;
+  height: 58px;
+  border: 1px dashed var(--text-faint);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pile-icon { font-size: 18px; color: var(--text-faint); }
+
+#bid-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px;
+  flex-shrink: 0;
+}
+.bid-slots { display: flex; gap: 8px; margin-top: 4px; }
+.bid-slot { cursor: pointer; }
+
+/* ══════════════════════════ FLASH ANIMATION ══════════════════════════ */
+@keyframes zone-flash {
+  0%   { box-shadow: var(--glow-hover); }
+  40%  { box-shadow: var(--glow-active); }
+  100% { box-shadow: none; }
+}
+.flash { animation: zone-flash 0.45s ease-out forwards; }
+
+/* ══════════════════════════ SCROLLBAR ══════════════════════════ */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+/* ══════════════════════════ RESPONSIVE CLAMP ══════════════════════════ */
+@media (max-width: 1100px) {
+  :root {
+    --card-w: 54px;
+    --card-h: 76px;
+    --kc-w: 70px;
+    --kc-h: 96px;
+    --loc-w: 120px;
+    --loc-h: 134px;
+  }
+}
