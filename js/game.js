@@ -11,9 +11,12 @@ const state = {
   phaseIndex: 0,
   phases: ['Spring', 'Summer', 'Autumn', 'Winter'],
   activePlayer: 1,
+  playerCount: 4,
   players: {
-    1: { faction: 'nobility', influence: 0, lore: 0, handSize: 6 },
-    2: { faction: 'clans',    influence: 0, lore: 0, handSize: 6 },
+    1: { faction: 'nobility',  influence: 0, lore: 0, handSize: 6 },
+    2: { faction: 'clans',     influence: 0, lore: 0, handSize: 6 },
+    3: { faction: 'uprising',  influence: 0, lore: 0, handSize: 6 },
+    4: { faction: 'gathering', influence: 0, lore: 0, handSize: 6 },
   },
 };
 
@@ -297,7 +300,24 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+// ── Player count selector ──────────────────────────────────────
+function setPlayerCount(n) {
+  state.playerCount = n;
+  document.body.dataset.players = n;
+  document.querySelectorAll('.pc-btn').forEach(b => {
+    b.classList.toggle('active', +b.dataset.count === n);
+  });
+}
+
+document.querySelectorAll('.pc-btn').forEach(b => {
+  b.addEventListener('click', (e) => {
+    e.stopPropagation();
+    setPlayerCount(+b.dataset.count);
+  });
+});
+
 // ── Init ───────────────────────────────────────────────────────
+setPlayerCount(4);
 updatePhaseDisplay();
 updateRoundDisplay();
 

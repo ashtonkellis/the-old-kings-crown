@@ -1191,6 +1191,218 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
 
+/* ══════════════════════════ PLAYER COUNT CHIP ══════════════════════════ */
+.player-count-btns {
+  display: flex;
+  gap: 4px;
+  margin-top: 2px;
+}
+.pc-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  font-weight: 600;
+  width: 22px;
+  height: 22px;
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
+  background: rgba(0,0,0,0.4);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.pc-btn:hover { border-color: var(--gold); color: var(--text-primary); }
+.pc-btn.active { background: rgba(201,168,76,0.18); border-color: var(--gold); color: var(--gold-light); }
+
+/* ══════════════════════════ CENTER ROW & SIDE BOARDS ══════════════════════════ */
+#center-row {
+  display: grid;
+  grid-template-columns: 160px 1fr 160px;
+  align-items: stretch;
+}
+
+.side-board {
+  background: rgba(10, 8, 6, 0.92);
+  border: var(--border-thin);
+  overflow-y: auto;
+  overflow-x: hidden;
+  --card-w: 46px;
+  --card-h: 64px;
+  --kc-w: 58px;
+  --kc-h: 78px;
+}
+
+/* Side banners */
+.side-banner {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 8px;
+  border-bottom: var(--border-thin);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.uprising-banner  { background: linear-gradient(180deg, rgba(122,21,21,0.5) 0%, rgba(10,8,6,0.95) 100%); }
+.gathering-banner { background: linear-gradient(180deg, rgba(58,16,101,0.5) 0%, rgba(10,8,6,0.95) 100%); }
+.side-banner-label {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gold-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.side-banner-hero {
+  font-style: italic;
+  color: var(--text-secondary);
+  font-size: 9px;
+}
+.side-banner-stats {
+  display: flex;
+  gap: 8px;
+  font-size: 10px;
+  margin-top: 2px;
+  color: var(--gold-light);
+}
+
+/* Side body */
+.side-body {
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.side-zone-row {
+  display: flex;
+  gap: 4px;
+}
+.side-mini-zone {
+  flex: 1;
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
+  background: rgba(20,16,8,0.6);
+  padding: 3px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  transition: box-shadow 0.18s, border-color 0.18s;
+}
+.side-mini-zone:hover { box-shadow: var(--glow-hover); border-color: var(--gold); }
+.side-mini-zone .zone-label { font-size: 8px; margin-bottom: 0; }
+.zone-count-inline {
+  color: var(--gold-dark);
+  font-size: 8px;
+}
+.side-section-label {
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  text-align: center;
+  border-top: var(--border-thin);
+  padding-top: 3px;
+  margin-top: 1px;
+}
+
+/* Side KC slots */
+.side-kc-row {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+.side-kc-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  cursor: pointer;
+}
+.side-kc-slot:hover .kc-card,
+.side-kc-slot:hover .occupying-card { box-shadow: var(--glow-hover); border-color: var(--gold); }
+.side-kc-slot .occupying-card { height: 22px; }
+
+/* Side tactics */
+.side-tactics-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+}
+.side-tactic {
+  width: auto !important;
+  height: 34px !important;
+  padding: 2px !important;
+}
+
+/* Side supporters */
+.side-supporters {
+  justify-content: flex-start !important;
+}
+
+/* Side hand */
+.side-hand {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  justify-content: center;
+}
+
+/* Side SoP */
+.side-sop {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  justify-content: center;
+}
+.side-sop-card {
+  width: 68px !important;
+  height: 26px !important;
+}
+
+/* ── Additional faction colors ── */
+.uprising-banner-bg { background: linear-gradient(90deg, rgba(122,21,21,0.45) 0%, transparent 60%); }
+.gathering-banner-bg{ background: linear-gradient(90deg, rgba(58,16,101,0.45) 0%, transparent 60%); }
+.uprising-herald  { color: var(--uprising-light); }
+.gathering-herald { color: var(--gathering-light); }
+.uprising-sup  { border-color: var(--uprising-mid);  color: var(--uprising-light); }
+.gathering-sup { border-color: var(--gathering-mid); color: var(--gathering-light); }
+.uprising-label  { color: var(--uprising-light); }
+.gathering-label { color: var(--gathering-light); }
+.uprising-marker { background: rgba(122,21,21,0.35); border-color: var(--uprising-mid); }
+.gathering-marker{ background: rgba(58,16,101,0.35); border-color: var(--gathering-mid); }
+
+/* ── Region card slot faction tints ── */
+.region-card-slot[data-player="1"] .faction-card-slot { border-color: var(--nobility-mid); }
+.region-card-slot[data-player="2"] .faction-card-slot { border-color: var(--clans-mid); }
+.region-card-slot[data-player="3"] .faction-card-slot { border-color: var(--uprising-mid); }
+.region-card-slot[data-player="4"] .faction-card-slot { border-color: var(--gathering-mid); }
+
+/* ── Player count visibility rules ── */
+body[data-players="2"] #p3-board,
+body[data-players="2"] #p4-board,
+body[data-players="3"] #p4-board { display: none; }
+
+body[data-players="2"] .region-card-slot[data-player="3"],
+body[data-players="2"] .region-card-slot[data-player="4"],
+body[data-players="3"] .region-card-slot[data-player="4"] { display: none; }
+
+body[data-players="2"] .order-slot[data-position="3"] .order-marker,
+body[data-players="2"] .order-slot[data-position="4"] .order-marker,
+body[data-players="3"] .order-slot[data-position="4"] .order-marker { opacity: 0.25; }
+
+body[data-players="2"] .bid-slot[data-player="3"],
+body[data-players="2"] .bid-slot[data-player="4"],
+body[data-players="3"] .bid-slot[data-player="4"] { display: none; }
+
+/* ── 2/3-player center-row: side boards gone, kingdom board fills full width ── */
+body[data-players="2"] #center-row,
+body[data-players="3"] #center-row { grid-template-columns: 0 1fr 0; }
+
 /* ══════════════════════════ RESPONSIVE CLAMP ══════════════════════════ */
 @media (max-width: 1100px) {
   :root {

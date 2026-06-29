@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/board.css">
 </head>
-<body>
+<body data-players="4">
 
 <!-- ─────────────────────────── TOOLTIP ─────────────────────────── -->
 <div id="tooltip" role="tooltip"></div>
@@ -21,6 +21,14 @@
     <span class="title-main">Old King's Crown</span>
   </div>
   <div id="game-status">
+    <div class="status-chip" id="player-count-chip" title="Number of players — click to switch">
+      <span class="chip-label">Players</span>
+      <div class="player-count-btns">
+        <button class="pc-btn" data-count="2">2</button>
+        <button class="pc-btn" data-count="3">3</button>
+        <button class="pc-btn active" data-count="4">4</button>
+      </div>
+    </div>
     <div class="status-chip" id="round-chip" title="Current round of the game">
       <span class="chip-label">Round</span>
       <span class="chip-value" id="round-value">1 / 5</span>
@@ -195,6 +203,94 @@
   </div>
 </section>
 
+<!-- ═══════════════════════ CENTER ROW ═══════════════════════ -->
+<div id="center-row">
+
+<!-- P3 SIDE BOARD: The Uprising -->
+<aside id="p3-board" class="side-board" data-player="3" data-faction="uprising">
+  <div class="side-banner uprising-banner">
+    <span class="side-banner-label">🗡 The Uprising</span>
+    <span class="side-banner-hero">Skye Ironfall</span>
+    <span class="side-banner-stats">
+      🪙 <strong id="p3-influence">0</strong>
+      ▲ <strong id="p3-lore">0</strong>
+    </span>
+  </div>
+  <div class="side-body">
+    <div class="side-zone-row">
+      <div class="side-mini-zone" data-zone="deck" data-player="3" title="Deck (13 cards)">
+        <div class="card-back-stack small"></div>
+        <span class="zone-label">Deck <span class="zone-count-inline">13</span></span>
+      </div>
+      <div class="side-mini-zone" data-zone="discard" data-player="3" title="Discard Pile">
+        <div class="card-front-placeholder small"></div>
+        <span class="zone-label">Disc. <span class="zone-count-inline">0</span></span>
+      </div>
+    </div>
+    <div class="side-zone-row">
+      <div class="side-mini-zone" data-zone="herald" data-player="3" title="Herald — place on a Location each Spring">
+        <div class="herald-piece uprising-herald">🗡</div>
+        <span class="zone-label">Herald</span>
+      </div>
+      <div class="side-mini-zone" data-zone="kingdoms-favour" data-player="3" title="Kingdom's Favour slot">
+        <div class="favour-disc empty-disc">🏴</div>
+        <span class="zone-label">Favour</span>
+      </div>
+    </div>
+    <div class="side-section-label">Kingdom Cards</div>
+    <div class="side-kc-row">
+      <div class="side-kc-slot" data-slot="1" data-player="3" data-zone="kc-slot" title="Kingdom Card slot 1">
+        <div class="kc-card empty" data-zone="kingdom-card"><span class="empty-hint">KC</span></div>
+        <div class="occupying-card empty" data-zone="occupying-card"><span class="empty-hint">Occ</span></div>
+      </div>
+      <div class="side-kc-slot" data-slot="2" data-player="3" data-zone="kc-slot" title="Kingdom Card slot 2">
+        <div class="kc-card empty" data-zone="kingdom-card"><span class="empty-hint">KC</span></div>
+        <div class="occupying-card empty" data-zone="occupying-card"><span class="empty-hint">Occ</span></div>
+      </div>
+    </div>
+    <div class="side-section-label">Tactics</div>
+    <div class="side-tactics-row">
+      <div class="tactic-tile unexhausted side-tactic" data-zone="tactic" data-player="3" data-tactic="1" title="Tactic 1 (Uprising)">
+        <span class="tactic-name">T1</span><span class="tactic-state">Ready</span>
+      </div>
+      <div class="tactic-tile unexhausted side-tactic" data-zone="tactic" data-player="3" data-tactic="2" title="Tactic 2 (Uprising)">
+        <span class="tactic-name">T2</span><span class="tactic-state">Ready</span>
+      </div>
+      <div class="tactic-tile unexhausted side-tactic" data-zone="tactic" data-player="3" data-tactic="3" title="Tactic 3 (Uprising)">
+        <span class="tactic-name">T3</span><span class="tactic-state">Ready</span>
+      </div>
+      <div class="tactic-tile unexhausted side-tactic" data-zone="tactic" data-player="3" data-tactic="4" title="Tactic 4 (Uprising)">
+        <span class="tactic-name">T4</span><span class="tactic-state">Ready</span>
+      </div>
+    </div>
+    <div class="side-section-label">Supporters</div>
+    <div class="supporter-pieces side-supporters">
+      <div class="supporter-piece available uprising-sup" data-player="3" data-sup="1" title="Supporter (available)">🗡</div>
+      <div class="supporter-piece available uprising-sup" data-player="3" data-sup="2" title="Supporter (available)">🗡</div>
+      <div class="supporter-piece available uprising-sup" data-player="3" data-sup="3" title="Supporter (available)">🗡</div>
+      <div class="supporter-piece available uprising-sup" data-player="3" data-sup="4" title="Supporter (available)">🗡</div>
+      <div class="supporter-piece available uprising-sup" data-player="3" data-sup="5" title="Supporter (available)">🗡</div>
+    </div>
+    <div class="side-section-label">Hand (6)</div>
+    <div class="side-hand">
+      <div class="card card-back" data-player="3"></div>
+      <div class="card card-back" data-player="3"></div>
+      <div class="card card-back" data-player="3"></div>
+      <div class="card card-back" data-player="3"></div>
+      <div class="card card-back" data-player="3"></div>
+      <div class="card card-back" data-player="3"></div>
+    </div>
+    <div class="side-section-label">Site of Power</div>
+    <div class="side-sop">
+      <div class="sop-card side-sop-card" data-zone="sop-card" data-player="3" title="Advanced Card"><span class="sop-hint">Adv.</span></div>
+      <div class="sop-card side-sop-card" data-zone="sop-card" data-player="3" title="Advanced Card"><span class="sop-hint">Adv.</span></div>
+      <div class="sop-card side-sop-card" data-zone="sop-card" data-player="3" title="Advanced Card"><span class="sop-hint">Adv.</span></div>
+      <div class="sop-card hq-card side-sop-card" data-zone="sop-card" data-player="3" title="HQ Card"><span class="sop-hint">HQ</span></div>
+      <div class="sop-card hq-card side-sop-card" data-zone="sop-card" data-player="3" title="HQ Card"><span class="sop-hint">HQ</span></div>
+    </div>
+  </div>
+</aside>
+
 <!-- ═══════════════════════ KINGDOM BOARD ═══════════════════════ -->
 <main id="kingdom-board" data-zone="kingdom-board">
 
@@ -218,13 +314,19 @@
           <span class="order-faction">Clans</span>
         </div>
       </div>
-      <div class="order-slot empty" data-position="3" data-zone="order-slot"
-           title="3rd position — empty (2-player game)">
-        <div class="order-marker empty-marker">3rd</div>
+      <div class="order-slot" data-position="3" data-zone="order-slot"
+           title="3rd position">
+        <div class="order-marker uprising-marker" data-faction="uprising">
+          <span class="order-pos">3rd</span>
+          <span class="order-faction">Uprising</span>
+        </div>
       </div>
-      <div class="order-slot empty" data-position="4" data-zone="order-slot"
-           title="4th position — empty (2-player game)">
-        <div class="order-marker empty-marker">4th</div>
+      <div class="order-slot" data-position="4" data-zone="order-slot"
+           title="4th position">
+        <div class="order-marker gathering-marker" data-faction="gathering">
+          <span class="order-pos">4th</span>
+          <span class="order-faction">Gathering</span>
+        </div>
       </div>
     </div>
   </section>
@@ -380,6 +482,18 @@
               <span class="slot-player-label clans-label">P2</span>
             </div>
           </div>
+          <div class="region-card-slot" data-player="3" data-region="highlands" data-zone="region-card-slot"
+               title="Uprising's face-down card for Highlands Clash">
+            <div class="card card-back faction-card-slot" data-player="3">
+              <span class="slot-player-label uprising-label">P3</span>
+            </div>
+          </div>
+          <div class="region-card-slot" data-player="4" data-region="highlands" data-zone="region-card-slot"
+               title="Gathering's face-down card for Highlands Clash">
+            <div class="card card-back faction-card-slot" data-player="4">
+              <span class="slot-player-label gathering-label">P4</span>
+            </div>
+          </div>
         </div>
 
         <!-- Supporter display for region -->
@@ -452,6 +566,18 @@
                title="Clans' face-down card for Plateau Clash">
             <div class="card card-back faction-card-slot" data-player="2">
               <span class="slot-player-label clans-label">P2</span>
+            </div>
+          </div>
+          <div class="region-card-slot" data-player="3" data-region="plateau" data-zone="region-card-slot"
+               title="Uprising's face-down card for Plateau Clash">
+            <div class="card card-back faction-card-slot" data-player="3">
+              <span class="slot-player-label uprising-label">P3</span>
+            </div>
+          </div>
+          <div class="region-card-slot" data-player="4" data-region="plateau" data-zone="region-card-slot"
+               title="Gathering's face-down card for Plateau Clash">
+            <div class="card card-back faction-card-slot" data-player="4">
+              <span class="slot-player-label gathering-label">P4</span>
             </div>
           </div>
         </div>
@@ -529,6 +655,18 @@
                title="Clans' face-down card for Lowlands Clash">
             <div class="card card-back faction-card-slot" data-player="2">
               <span class="slot-player-label clans-label">P2</span>
+            </div>
+          </div>
+          <div class="region-card-slot" data-player="3" data-region="lowlands" data-zone="region-card-slot"
+               title="Uprising's face-down card for Lowlands Clash">
+            <div class="card card-back faction-card-slot" data-player="3">
+              <span class="slot-player-label uprising-label">P3</span>
+            </div>
+          </div>
+          <div class="region-card-slot" data-player="4" data-region="lowlands" data-zone="region-card-slot"
+               title="Gathering's face-down card for Lowlands Clash">
+            <div class="card card-back faction-card-slot" data-player="4">
+              <span class="slot-player-label gathering-label">P4</span>
             </div>
           </div>
         </div>
@@ -639,12 +777,107 @@
              title="Clans' Bid — placed face-down in Spring">
           <div class="card card-face-down-bid">P2 Bid</div>
         </div>
+        <div class="bid-slot" data-player="3" data-zone="bid-slot"
+             title="Uprising's Bid — placed face-down in Spring">
+          <div class="card card-face-down-bid">P3 Bid</div>
+        </div>
+        <div class="bid-slot" data-player="4" data-zone="bid-slot"
+             title="Gathering's Bid — placed face-down in Spring">
+          <div class="card card-face-down-bid">P4 Bid</div>
+        </div>
       </div>
     </div>
 
   </section>
 
 </main><!-- /kingdom-board -->
+
+<!-- P4 SIDE BOARD: The Gathering -->
+<aside id="p4-board" class="side-board" data-player="4" data-faction="gathering">
+  <div class="side-banner gathering-banner">
+    <span class="side-banner-label">🌙 The Gathering</span>
+    <span class="side-banner-hero">Mira of the Veil</span>
+    <span class="side-banner-stats">
+      🪙 <strong id="p4-influence">0</strong>
+      ▲ <strong id="p4-lore">0</strong>
+    </span>
+  </div>
+  <div class="side-body">
+    <div class="side-zone-row">
+      <div class="side-mini-zone" data-zone="deck" data-player="4" title="Deck (13 cards)">
+        <div class="card-back-stack small"></div>
+        <span class="zone-label">Deck <span class="zone-count-inline">13</span></span>
+      </div>
+      <div class="side-mini-zone" data-zone="discard" data-player="4" title="Discard Pile">
+        <div class="card-front-placeholder small"></div>
+        <span class="zone-label">Disc. <span class="zone-count-inline">0</span></span>
+      </div>
+    </div>
+    <div class="side-zone-row">
+      <div class="side-mini-zone" data-zone="herald" data-player="4" title="Herald — place on a Location each Spring">
+        <div class="herald-piece gathering-herald">🌙</div>
+        <span class="zone-label">Herald</span>
+      </div>
+      <div class="side-mini-zone" data-zone="kingdoms-favour" data-player="4" title="Kingdom's Favour slot">
+        <div class="favour-disc empty-disc">🏴</div>
+        <span class="zone-label">Favour</span>
+      </div>
+    </div>
+    <div class="side-section-label">Kingdom Cards</div>
+    <div class="side-kc-row">
+      <div class="side-kc-slot" data-slot="1" data-player="4" data-zone="kc-slot" title="Kingdom Card slot 1">
+        <div class="kc-card empty" data-zone="kingdom-card"><span class="empty-hint">KC</span></div>
+        <div class="occupying-card empty" data-zone="occupying-card"><span class="empty-hint">Occ</span></div>
+      </div>
+      <div class="side-kc-slot" data-slot="2" data-player="4" data-zone="kc-slot" title="Kingdom Card slot 2">
+        <div class="kc-card empty" data-zone="kingdom-card"><span class="empty-hint">KC</span></div>
+        <div class="occupying-card empty" data-zone="occupying-card"><span class="empty-hint">Occ</span></div>
+      </div>
+    </div>
+    <div class="side-section-label">Tactics</div>
+    <div class="side-tactics-row">
+      <div class="tactic-tile unexhausted side-tactic" data-zone="tactic" data-player="4" data-tactic="1" title="Tactic 1 (Gathering)">
+        <span class="tactic-name">T1</span><span class="tactic-state">Ready</span>
+      </div>
+      <div class="tactic-tile unexhausted side-tactic" data-zone="tactic" data-player="4" data-tactic="2" title="Tactic 2 (Gathering)">
+        <span class="tactic-name">T2</span><span class="tactic-state">Ready</span>
+      </div>
+      <div class="tactic-tile unexhausted side-tactic" data-zone="tactic" data-player="4" data-tactic="3" title="Tactic 3 (Gathering)">
+        <span class="tactic-name">T3</span><span class="tactic-state">Ready</span>
+      </div>
+      <div class="tactic-tile unexhausted side-tactic" data-zone="tactic" data-player="4" data-tactic="4" title="Tactic 4 (Gathering)">
+        <span class="tactic-name">T4</span><span class="tactic-state">Ready</span>
+      </div>
+    </div>
+    <div class="side-section-label">Supporters</div>
+    <div class="supporter-pieces side-supporters">
+      <div class="supporter-piece available gathering-sup" data-player="4" data-sup="1" title="Supporter (available)">🌙</div>
+      <div class="supporter-piece available gathering-sup" data-player="4" data-sup="2" title="Supporter (available)">🌙</div>
+      <div class="supporter-piece available gathering-sup" data-player="4" data-sup="3" title="Supporter (available)">🌙</div>
+      <div class="supporter-piece available gathering-sup" data-player="4" data-sup="4" title="Supporter (available)">🌙</div>
+      <div class="supporter-piece available gathering-sup" data-player="4" data-sup="5" title="Supporter (available)">🌙</div>
+    </div>
+    <div class="side-section-label">Hand (6)</div>
+    <div class="side-hand">
+      <div class="card card-back" data-player="4"></div>
+      <div class="card card-back" data-player="4"></div>
+      <div class="card card-back" data-player="4"></div>
+      <div class="card card-back" data-player="4"></div>
+      <div class="card card-back" data-player="4"></div>
+      <div class="card card-back" data-player="4"></div>
+    </div>
+    <div class="side-section-label">Site of Power</div>
+    <div class="side-sop">
+      <div class="sop-card side-sop-card" data-zone="sop-card" data-player="4" title="Advanced Card"><span class="sop-hint">Adv.</span></div>
+      <div class="sop-card side-sop-card" data-zone="sop-card" data-player="4" title="Advanced Card"><span class="sop-hint">Adv.</span></div>
+      <div class="sop-card side-sop-card" data-zone="sop-card" data-player="4" title="Advanced Card"><span class="sop-hint">Adv.</span></div>
+      <div class="sop-card hq-card side-sop-card" data-zone="sop-card" data-player="4" title="HQ Card"><span class="sop-hint">HQ</span></div>
+      <div class="sop-card hq-card side-sop-card" data-zone="sop-card" data-player="4" title="HQ Card"><span class="sop-hint">HQ</span></div>
+    </div>
+  </div>
+</aside>
+
+</div><!-- /center-row -->
 
 <!-- ═══════════════════════ CURRENT PLAYER BOARD (BOTTOM) ═══════════════════════ -->
 <section
