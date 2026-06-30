@@ -584,8 +584,8 @@ function applyPassAction(state: GameState, playerId: PlayerId): GameState {
   return { ...state, board: { ...state.board, actionStepDone: done }, activePlayerId: nextPlayer };
 }
 
-function advanceTurn(state: GameState, _playerId: PlayerId): GameState {
-  return advancePhase(state);
+function advanceTurn(state: GameState, playerId: PlayerId): GameState {
+  return applyPassAction(state, playerId);
 }
 
 function getNextPlayer(state: GameState, currentPlayerId: PlayerId): PlayerId {

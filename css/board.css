@@ -1403,6 +1403,155 @@ body[data-players="3"] .bid-slot[data-player="4"] { display: none; }
 body[data-players="2"] #center-row,
 body[data-players="3"] #center-row { grid-template-columns: 0 1fr 0; }
 
+/* ══════════════════════════ INTERACTIVE UI LAYER ══════════════════════════ */
+
+/* Valid action highlight — green glow on any interactive zone */
+.valid-action {
+  box-shadow: 0 0 0 2px rgba(80, 200, 80, 0.6), 0 0 12px 3px rgba(80, 200, 80, 0.3) !important;
+  border-color: rgba(80, 200, 80, 0.7) !important;
+  cursor: pointer;
+  animation: pulse-valid 2s ease-in-out infinite;
+}
+@keyframes pulse-valid {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(80,200,80,0.5), 0 0 12px 3px rgba(80,200,80,0.25); }
+  50%       { box-shadow: 0 0 0 2px rgba(80,200,80,0.85), 0 0 18px 5px rgba(80,200,80,0.45); }
+}
+
+/* Selected card — gold outline */
+.selected-card {
+  box-shadow: 0 0 0 2px var(--gold), 0 0 16px 4px rgba(201,168,76,0.55) !important;
+  border-color: var(--gold) !important;
+  transform: translateY(-4px);
+  z-index: 10;
+}
+
+/* Bid committed — shown in hand zone while awaiting KC choice */
+.card-bid-pending {
+  background: rgba(201,168,76,0.12);
+  border: 2px dashed var(--gold-dark);
+  opacity: 0.75;
+  cursor: default;
+}
+
+/* Placed region card */
+.placed-region-card {
+  pointer-events: none;
+}
+
+/* Has-bid indicator in bid area */
+.card.has-bid {
+  background: rgba(201,168,76,0.18);
+  border-color: var(--gold-dark);
+  color: var(--gold-light);
+  font-size: 10px;
+}
+
+/* ── Instruction bar ───────────────────────────────────────────────────────── */
+#instruction-bar {
+  position: fixed;
+  top: 56px;           /* just below header */
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10, 8, 5, 0.92);
+  border: 1px solid var(--gold-dark);
+  border-radius: var(--radius-sm);
+  padding: 6px 16px;
+  z-index: 200;
+  pointer-events: none;
+  max-width: 680px;
+  text-align: center;
+}
+#instruction-text {
+  font-family: 'Crimson Text', serif;
+  font-size: 14px;
+  color: var(--gold-light);
+  font-style: italic;
+}
+
+/* ── Action panel ──────────────────────────────────────────────────────────── */
+#action-panel {
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10, 8, 5, 0.92);
+  border: 1px solid var(--gold-dark);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  z-index: 200;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: 800px;
+  justify-content: center;
+}
+
+.action-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--gold-dark);
+  background: rgba(201,168,76,0.1);
+  color: var(--gold-light);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+.action-btn:hover {
+  background: rgba(201,168,76,0.22);
+  border-color: var(--gold);
+  transform: translateY(-1px);
+}
+.action-btn:active { transform: translateY(0); }
+
+.action-btn.btn-primary {
+  background: rgba(80, 160, 80, 0.2);
+  border-color: rgba(80,200,80,0.6);
+  color: #9ee89e;
+}
+.action-btn.btn-primary:hover { background: rgba(80,160,80,0.35); }
+
+.action-btn.btn-pass {
+  background: rgba(80,120,200,0.15);
+  border-color: rgba(100,140,220,0.5);
+  color: #aac0f0;
+}
+.action-btn.btn-pass:hover { background: rgba(80,120,200,0.28); }
+
+.action-btn.btn-cancel {
+  background: rgba(160,60,60,0.15);
+  border-color: rgba(200,80,80,0.4);
+  color: #f0a0a0;
+  font-size: 10px;
+}
+.action-btn.btn-cancel:hover { background: rgba(160,60,60,0.28); }
+
+/* ── Region supporter pending count ───────────────────────────────────────── */
+.pending-sup-count {
+  font-size: 10px;
+  color: var(--gold);
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+/* ── KC title/rules inside Great Road ─────────────────────────────────────── */
+.kc-road-card .kc-suit   { font-size: 13px; }
+.kc-road-card .kc-title  { font-family: 'Cinzel', serif; font-size: 9px; color: var(--gold-light); margin-top: 2px; line-height: 1.2; }
+.kc-road-card .kc-rules  { font-size: 8px; color: var(--text-secondary); margin-top: 2px; line-height: 1.3; }
+
+/* ── KC slot — small titles inside player boards ──────────────────────────── */
+.kc-suit-sm  { font-size: 11px; }
+.kc-title-sm { font-size: 8px; color: var(--gold-light); font-family: 'Cinzel', serif; line-height: 1.2; }
+.occ-str     { font-size: 12px; font-weight: 700; color: var(--text-primary); }
+.occ-name    { font-size: 8px; color: var(--text-secondary); line-height: 1.1; }
+
+/* ── Lore / vote icons in hand cards ──────────────────────────────────────── */
+.card-lore { font-size: 8px; color: #7ac5e8; margin-top: 1px; }
+.card-vote { font-size: 8px; color: #c5a87a; margin-top: 1px; }
+
 /* ══════════════════════════ RESPONSIVE CLAMP ══════════════════════════ */
 @media (max-width: 1100px) {
   :root {

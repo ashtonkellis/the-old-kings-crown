@@ -57,6 +57,9 @@ export function getValidActions(state: GameState, playerId: PlayerId): Action[] 
         for (const loc of heraldLocations) {
           actions.push({ type: 'PLACE_HERALD', playerId, location: loc });
         }
+      } else {
+        // Already placed — signal done for this step
+        actions.push({ type: 'PASS_ACTION', playerId });
       }
     }
 
@@ -67,6 +70,8 @@ export function getValidActions(state: GameState, playerId: PlayerId): Action[] 
           actions.push({ type: 'PLACE_REGION_CARD', playerId, region, cardUid: card.uid });
         }
       }
+      // Can always pass (deploy fewer cards)
+      actions.push({ type: 'PASS_ACTION', playerId });
     }
 
     if (step === 'deploy-supporters') {
@@ -78,6 +83,7 @@ export function getValidActions(state: GameState, playerId: PlayerId): Action[] 
           placements: [{ region: 'highlands', count: 1 }],
         });
       }
+      actions.push({ type: 'PASS_ACTION', playerId });
     }
   }
 
