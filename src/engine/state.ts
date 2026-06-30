@@ -3,7 +3,7 @@ import {
   CardInstance, KCInstance, KCSlot, SupporterPiece,
   Region, Location, Council, PlayerId, Faction,
 } from './types';
-import { buildBasicCards, TACTIC_TILES } from './data/factions';
+import { buildBasicCards, TACTIC_TILES, ADVANCED_CARDS, HQ_CARDS } from './data/factions';
 import { KINGDOM_CARDS } from './data/kingdoms';
 
 let _uid = 0;
@@ -67,7 +67,7 @@ export function createInitialState(config: GameConfig): GameState {
 
   // Kingdom deck
   const kcInstances = shuffle(KINGDOM_CARDS.map(kc => makeKCInstance(kc.id)));
-  const roadSize = 5;
+  const roadSize = 4;
   const greatRoad = kcInstances.slice(0, roadSize) as (KCInstance | null)[];
   const kingdomDeck = kcInstances.slice(roadSize);
 
@@ -85,17 +85,20 @@ export function createInitialState(config: GameConfig): GameState {
     lowlands: makeEmptyRegion('lowlands'),
   };
 
-  const maxRounds = gameLength === 'short' ? 3 : gameLength === 'extended' ? 5 : 4;
+  // Kingdom's Favour disc starts on Harvest Field
+  map['plateau'].locations['harvest-field'].hasFavourDisc = true;
+
+  const maxRounds = gameLength === 'short' ? 4 : gameLength === 'extended' ? 6 : 5;
 
   const board: BoardState = {
     greatRoad,
     kingdomDeck,
     kingdomDiscard: [],
-    reserve: { influence: 30, lore: 30 },
+    reserve: { influence: 48, lore: 20 },
     lostPile: [],
     map,
     councils,
-    favourLocation: 'castle',
+    favourLocation: 'harvest-field',
     round: 1,
     maxRounds,
     phase: 'spring',
@@ -111,9 +114,20 @@ export function createInitialState(config: GameConfig): GameState {
     const pid = (i + 1) as PlayerId;
     const faction = factions[i] as Faction;
     const basicDefs = buildBasicCards(faction);
-    const deck = shuffle(basicDefs.map(d => makeCardInstance(d.id)));
-    // Deal initial hand of 4
-    const hand = deck.splice(0, 4);
+
+    // Heir goes directly to hand; remaining 17 are shuffled into deck
+    const heirDef = basicDefs.find(d => d.isHeir)!;
+    const nonHeirDefs = basicDefs.filter(d => !d.isHeir);
+    const shuffledDeck = shuffle(nonHeirDefs.map(d => makeCardInstance(d.id)));
+    // Starting hand: Heir + draw 5 from deck
+    const hand: CardInstance[] = [makeCardInstance(heirDef.id), ...shuffledDeck.splice(0, 5)];
+    const deck = shuffledDeck;
+
+    // Site of Power: 3 Advanced + 2 HQ cards
+    const siteOfPower: CardInstance[] = [
+      ...ADVANCED_CARDS[faction].map(d => makeCardInstance(d.id)),
+      ...HQ_CARDS[faction].map(d => makeCardInstance(d.id)),
+    ];
 
     const supporters: SupporterPiece[] = Array.from({ length: 5 }, (_, idx) => ({
       id: idx + 1,
@@ -123,7 +137,7 @@ export function createInitialState(config: GameConfig): GameState {
     const player: PlayerState = {
       playerId: pid,
       faction,
-      heirName: basicDefs.find(d => d.isHeir)?.title ?? faction,
+      heirName: heirDef.title,
       deck,
       hand,
       discardPile: [],
@@ -133,8 +147,8 @@ export function createInitialState(config: GameConfig): GameState {
       supporters,
       herald: { location: 'player-board' },
       supply: { influence: 5, lore: 0 },
-      handSize: 4,
-      siteOfPower: [],
+      handSize: 6,
+      siteOfPower,
       hqCards: [],
       holdsFavour: false,
       favourUsesLeft: 0,

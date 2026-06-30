@@ -1,6 +1,6 @@
 import {
   GameState, Action, PlayerId, PlayerState,
-  CardInstance, KCInstance, Region,
+  CardInstance, KCInstance, Region, Location,
 } from './types';
 import { createInitialState, getPlayer, mutatePlayer } from './state';
 import { resolveClash, checkWinCondition } from './rules';
@@ -32,8 +32,23 @@ export function applyAction(state: GameState, action: Action): GameState {
     case 'PLACE_SUPPORTERS':
       return applyPlaceSupporters(state, action.playerId, action.placements);
 
-    case 'SET_CLASH_ORDER':
-      return { ...state, board: { ...state.board, clashOrder: action.order, phase: 'summer', step: 'day-action' } };
+    case 'SET_CLASH_ORDER': {
+      const firstRegion = action.order[0];
+      let s: GameState = {
+        ...state,
+        board: {
+          ...state.board,
+          clashOrder: action.order,
+          phase: 'summer' as const,
+          step: 'day-action',
+          currentClashIndex: 0,
+          actionStepDone: [],
+        },
+        activePlayerId: state.orderTrack[0],
+      };
+      s = revealCardsInRegion(s, firstRegion);
+      return s;
+    }
 
     case 'ACTIVATE_AMBUSH':
       return applyAmbush(state, action.playerId, action.region, action.sourceCardUid, action.ambushCardUid);
@@ -60,13 +75,13 @@ export function applyAction(state: GameState, action: Action): GameState {
       return applyJourney(state, action.playerId, action.cardUid);
 
     case 'SPEND_LORE':
-      return state; // complex HQ card effects — stub
+      return applySpendLore(state, action.playerId, action.siteCardUid);
 
     case 'ACTIVATE_RALLY':
       return applyRally(state, action.playerId, action.cardUids);
 
     case 'ACTIVATE_DEPLOY':
-      return state; // stub
+      return applyDeploy(state, action.playerId, action.cardUid, action.region);
 
     case 'PASS_ACTION':
       return applyPassAction(state, action.playerId);
@@ -105,7 +120,6 @@ function applyResolveKCTake(state: GameState, playerId: PlayerId, roadSlot: numb
     board: { ...state.board, greatRoad: newRoad },
   };
 
-  // Give KC to player (fill first empty slot)
   s = mutatePlayer(s, playerId, player => {
     const slots = [...player.kcSlots] as PlayerState['kcSlots'];
     const emptyIdx = slots.findIndex(slot => slot.kc === null);
@@ -115,7 +129,6 @@ function applyResolveKCTake(state: GameState, playerId: PlayerId, roadSlot: numb
     return { ...player, kcSlots: slots, bidResolved: true };
   });
 
-  // Return bid card to discard
   s = returnBidToDiscard(s, playerId);
 
   return advanceBidding(s);
@@ -131,14 +144,12 @@ function applyResolveKCSteal(
   const kc = target.kcSlots[targetSlot].kc;
   if (!kc) return state;
 
-  // Remove from target
   let s = mutatePlayer(state, targetPlayerId, p => {
     const slots = [...p.kcSlots] as PlayerState['kcSlots'];
     slots[targetSlot] = { ...slots[targetSlot], kc: null };
     return { ...p, kcSlots: slots };
   });
 
-  // Give to thief
   s = mutatePlayer(s, playerId, player => {
     const slots = [...player.kcSlots] as PlayerState['kcSlots'];
     const emptyIdx = slots.findIndex(slot => slot.kc === null);
@@ -169,10 +180,56 @@ function returnBidToDiscard(state: GameState, playerId: PlayerId): GameState {
   });
 }
 
+function repopulateGreatRoad(state: GameState, anyKCTaken: boolean): GameState {
+  let road = [...state.board.greatRoad] as (KCInstance | null)[];
+  let deck = [...state.board.kingdomDeck];
+  let discard = [...state.board.kingdomDiscard];
+  const ROAD_SIZE = 4;
+
+  if (!anyKCTaken) {
+    // No KCs taken: move two rightmost cards to discard
+    let moved = 0;
+    for (let i = ROAD_SIZE - 1; i >= 0 && moved < 2; i--) {
+      if (road[i] !== null) {
+        discard.push(road[i]!);
+        road[i] = null;
+        moved++;
+      }
+    }
+  } else {
+    // KCs were taken: move rightmost remaining card to discard
+    for (let i = ROAD_SIZE - 1; i >= 0; i--) {
+      if (road[i] !== null) {
+        discard.push(road[i]!);
+        road[i] = null;
+        break;
+      }
+    }
+  }
+
+  // Compact non-null cards to the right
+  const nonNull = road.filter(c => c !== null) as KCInstance[];
+  road = new Array(ROAD_SIZE).fill(null) as (KCInstance | null)[];
+  for (let i = 0; i < nonNull.length; i++) {
+    road[ROAD_SIZE - nonNull.length + i] = nonNull[i];
+  }
+
+  // Fill empty slots from deck (rightmost first)
+  for (let i = ROAD_SIZE - 1; i >= 0; i--) {
+    if (road[i] === null && deck.length > 0) {
+      road[i] = deck.shift()!;
+    }
+  }
+
+  return {
+    ...state,
+    board: { ...state.board, greatRoad: road, kingdomDeck: deck, kingdomDiscard: discard },
+  };
+}
+
 function advanceBidding(state: GameState): GameState {
   const allResolved = state.players.every(p => p.bidResolved);
   if (!allResolved) {
-    // Find next player who hasn't bid yet
     const nextPlayer = state.orderTrack.find(pid => {
       const p = getPlayer(state, pid);
       return !p.bid && !p.bidResolved;
@@ -180,19 +237,53 @@ function advanceBidding(state: GameState): GameState {
     return { ...state, activePlayerId: nextPlayer };
   }
 
+  // Repopulate Great Road before advancing to herald
+  const anyKCTaken = state.board.greatRoad.some(slot => slot === null);
+  let s = repopulateGreatRoad(state, anyKCTaken);
+
   // Reset bidResolved for next round and advance to herald
-  let s = state;
   for (const p of s.players) {
     s = mutatePlayer(s, p.playerId, pl => ({ ...pl, bidResolved: false }));
   }
-  return { ...s, board: { ...s.board, step: 'herald' }, activePlayerId: s.orderTrack[0] };
+  return { ...s, board: { ...s.board, step: 'herald', actionStepDone: [] }, activePlayerId: s.orderTrack[0] };
 }
 
-function applyPlaceHerald(state: GameState, playerId: PlayerId, location: import('./types').Location): GameState {
-  return mutatePlayer(state, playerId, p => ({
+function applyPlaceHerald(state: GameState, playerId: PlayerId, location: Location): GameState {
+  const regionLocMap: Record<Location, import('./types').Region> = {
+    'castle':       'highlands',
+    'wilderness':   'highlands',
+    'harvest-field': 'plateau',
+    'battlefield':  'plateau',
+    'shrine':       'lowlands',
+    'necropolis':   'lowlands',
+  };
+  const region = regionLocMap[location];
+
+  let s = mutatePlayer(state, playerId, p => ({
     ...p,
     herald: { location },
   }));
+
+  // Mark herald owner in location state
+  const rs = s.board.map[region];
+  s = {
+    ...s,
+    board: {
+      ...s.board,
+      map: {
+        ...s.board.map,
+        [region]: {
+          ...rs,
+          locations: {
+            ...rs.locations,
+            [location]: { ...rs.locations[location], heraldOwner: playerId },
+          },
+        },
+      },
+    },
+  };
+
+  return s;
 }
 
 function applyPlaceRegionCard(
@@ -211,7 +302,6 @@ function applyPlaceRegionCard(
     };
   });
 
-  // Place in region
   const player = getPlayer(s, playerId);
   const placed = player.regionCards.find(rc => rc.card.uid === cardUid);
   if (placed) {
@@ -242,7 +332,6 @@ function applyPlaceSupporters(
   let s = state;
 
   for (const { region, count } of placements) {
-    // Move supporters from player board to region
     s = mutatePlayer(s, playerId, p => {
       let placed = 0;
       const supporters = p.supporters.map(sup => {
@@ -255,7 +344,6 @@ function applyPlaceSupporters(
       return { ...p, supporters };
     });
 
-    // Update region supporter count
     const regionState = s.board.map[region];
     const existing = regionState.supporters.find(s => s.playerId === playerId);
     const newSupps = existing
@@ -277,6 +365,18 @@ function applyPlaceSupporters(
 }
 
 // ─── Summer Actions ────────────────────────────────────────────────────────────
+
+function revealCardsInRegion(state: GameState, region: Region): GameState {
+  const regionState = state.board.map[region];
+  const revealed = regionState.activeCards.map(ac => ({ ...ac, faceDown: false }));
+  return {
+    ...state,
+    board: {
+      ...state.board,
+      map: { ...state.board.map, [region]: { ...regionState, activeCards: revealed } },
+    },
+  };
+}
 
 function applyAmbush(
   state: GameState,
@@ -340,7 +440,6 @@ function applyRetreat(
     },
   };
 
-  // Put retreated cards in hand (up to hand size)
   for (const ac of retreating) {
     s = mutatePlayer(s, playerId, p => ({
       ...p,
@@ -383,17 +482,233 @@ function applyFlank(
   return s;
 }
 
+function applyDeadlyNight(state: GameState, region: Region): GameState {
+  const regionState = state.board.map[region];
+
+  // Find players who have a Deadly card active and face-up
+  const deadlyPlayerIds = new Set<PlayerId>();
+  for (const ac of regionState.activeCards) {
+    if (ac.faceDown) continue;
+    const def = getCardDef(ac.card.defId);
+    if (def.commands.some(c => c.type === 'deadly' && c.step === 'night')) {
+      deadlyPlayerIds.add(ac.playerId);
+    }
+  }
+
+  if (deadlyPlayerIds.size === 0) return state;
+
+  // Cards to eliminate: opponents of Deadly players that aren't Invulnerable
+  const toEliminate: { card: CardInstance; ownerId: PlayerId }[] = [];
+  for (const ac of regionState.activeCards) {
+    if (ac.faceDown) continue;
+    if (deadlyPlayerIds.has(ac.playerId)) continue;
+    // Only targeted if at least one of the OPPONENT's enemies has Deadly
+    const hasDeadlyOpponent = regionState.activeCards.some(
+      other => !other.faceDown && other.playerId !== ac.playerId && deadlyPlayerIds.has(other.playerId)
+    );
+    if (!hasDeadlyOpponent) continue;
+    const def = getCardDef(ac.card.defId);
+    if (def.traits.includes('invulnerable')) continue;
+    toEliminate.push({ card: ac.card, ownerId: ac.playerId });
+  }
+
+  if (toEliminate.length === 0) return state;
+
+  const surviving = regionState.activeCards.filter(
+    ac => !toEliminate.some(e => e.card.uid === ac.card.uid)
+  );
+  let s: GameState = {
+    ...state,
+    board: {
+      ...state.board,
+      map: { ...state.board.map, [region]: { ...regionState, activeCards: surviving } },
+    },
+  };
+
+  for (const { card, ownerId } of toEliminate) {
+    const def = getCardDef(card.defId);
+    if (def.traits.includes('resilient')) {
+      s = mutatePlayer(s, ownerId, p => ({ ...p, discardPile: [...p.discardPile, card] }));
+    } else {
+      s = { ...s, board: { ...s.board, lostPile: [...s.board.lostPile, card] } };
+    }
+  }
+
+  return s;
+}
+
+function takeFromReserve(state: GameState, type: 'influence' | 'lore', amount: number): GameState {
+  return {
+    ...state,
+    board: {
+      ...state.board,
+      reserve: {
+        ...state.board.reserve,
+        [type]: Math.max(0, state.board.reserve[type] - amount),
+      },
+    },
+  };
+}
+
+function advanceAfterReward(state: GameState, region: Region): GameState {
+  let s: GameState = {
+    ...state,
+    board: {
+      ...state.board,
+      map: {
+        ...state.board.map,
+        [region]: { ...state.board.map[region], resolved: true },
+      },
+    },
+  };
+
+  const clashOrder = s.board.clashOrder ?? (['highlands', 'plateau', 'lowlands'] as Region[]);
+  const nextIdx = s.board.currentClashIndex + 1;
+
+  if (nextIdx < clashOrder.length) {
+    const nextRegion = clashOrder[nextIdx];
+    s = revealCardsInRegion(s, nextRegion);
+    return {
+      ...s,
+      board: {
+        ...s.board,
+        phase: 'summer' as const,
+        step: 'day-action',
+        currentClashIndex: nextIdx,
+        actionStepDone: [],
+      },
+      activePlayerId: s.orderTrack[0],
+    };
+  }
+
+  // All clashes done → Autumn
+  return {
+    ...s,
+    board: {
+      ...s.board,
+      phase: 'autumn' as const,
+      step: 'autumn-actions',
+      currentClashIndex: 0,
+      actionStepDone: [],
+    },
+    activePlayerId: s.orderTrack[0],
+  };
+}
+
 function applyClaimRewards(
   state: GameState,
   playerId: PlayerId,
-  _region: Region,
-  _chosenLocation: import('./types').Location
+  region: Region,
+  chosenLocation: Location
 ): GameState {
-  // Simplified: winner of clash gains 2 influence
-  return mutatePlayer(state, playerId, p => ({
-    ...p,
-    supply: { ...p.supply, influence: p.supply.influence + 2 },
-  }));
+  let s = state;
+  const regionState = s.board.map[region];
+  const locState = regionState.locations[chosenLocation];
+
+  // ── Herald Reward ────────────────────────────────────────────────────────────
+  if (locState.heraldOwner === playerId) {
+    s = mutatePlayer(s, playerId, p => ({
+      ...p,
+      supply: { ...p.supply, influence: p.supply.influence + 1 },
+    }));
+    s = takeFromReserve(s, 'influence', 1);
+
+    // Steal 1 from each opponent with a herald at this same location
+    for (const other of s.players) {
+      if (other.playerId === playerId) continue;
+      if (s.board.map[region].locations[chosenLocation].heraldOwner === other.playerId) {
+        const steal = Math.min(1, other.supply.influence);
+        s = mutatePlayer(s, other.playerId, p => ({
+          ...p,
+          supply: { ...p.supply, influence: p.supply.influence - steal },
+        }));
+        s = mutatePlayer(s, playerId, p => ({
+          ...p,
+          supply: { ...p.supply, influence: p.supply.influence + steal },
+        }));
+      }
+    }
+  }
+
+  // ── Location Reward ──────────────────────────────────────────────────────────
+  switch (chosenLocation) {
+    case 'castle':
+      // Govern with 1 card — simplified: gain 1 Influence
+      s = mutatePlayer(s, playerId, p => ({
+        ...p,
+        supply: { ...p.supply, influence: p.supply.influence + 1 },
+      }));
+      s = takeFromReserve(s, 'influence', 1);
+      break;
+
+    case 'wilderness':
+      // Journey with 1 card — gain 1 Lore
+      s = mutatePlayer(s, playerId, p => ({
+        ...p,
+        supply: { ...p.supply, lore: p.supply.lore + 1 },
+      }));
+      s = takeFromReserve(s, 'lore', 1);
+      break;
+
+    case 'harvest-field': {
+      // Gain 1 Influence + claim Kingdom's Favour
+      s = mutatePlayer(s, playerId, p => ({
+        ...p,
+        supply: { ...p.supply, influence: p.supply.influence + 1 },
+      }));
+      s = takeFromReserve(s, 'influence', 1);
+      // Remove Favour from previous holder
+      const prevFavour = s.board.favourLocation;
+      if (typeof prevFavour === 'number') {
+        s = mutatePlayer(s, prevFavour as PlayerId, p => ({
+          ...p,
+          holdsFavour: false,
+          favourUsesLeft: 0,
+        }));
+      }
+      s = mutatePlayer(s, playerId, p => ({
+        ...p,
+        holdsFavour: true,
+        favourUsesLeft: 3,
+      }));
+      s = { ...s, board: { ...s.board, favourLocation: playerId } };
+      break;
+    }
+
+    case 'battlefield':
+      // Gain 2 Influence
+      s = mutatePlayer(s, playerId, p => ({
+        ...p,
+        supply: { ...p.supply, influence: p.supply.influence + 2 },
+      }));
+      s = takeFromReserve(s, 'influence', 2);
+      break;
+
+    case 'shrine':
+      // Move up to 3 cards to bottom of Deck — simplified: gain 1 Lore
+      s = mutatePlayer(s, playerId, p => ({
+        ...p,
+        supply: { ...p.supply, lore: p.supply.lore + 1 },
+      }));
+      s = takeFromReserve(s, 'lore', 1);
+      break;
+
+    case 'necropolis':
+      // Shuffle Discard into Deck, draw up to 3
+      s = mutatePlayer(s, playerId, p => {
+        const newDeck = shuffleArr([...p.deck, ...p.discardPile]);
+        const drawCount = Math.min(3, newDeck.length);
+        return {
+          ...p,
+          deck: newDeck.slice(drawCount),
+          discardPile: [],
+          hand: [...p.hand, ...newDeck.slice(0, drawCount)],
+        };
+      });
+      break;
+  }
+
+  return advanceAfterReward(s, region);
 }
 
 function applyTiedClashPlay(
@@ -429,7 +744,6 @@ function applyTiedClashPlay(
   };
 
   if (newPending.length === 0) {
-    // Resolve tie
     const result = resolveClash(s, region);
     const regionState2 = s.board.map[region];
     s = {
@@ -489,16 +803,14 @@ function applyGovern(
   if (!card) return state;
 
   const def = getCardDef(card.defId);
-  const loreCost = def.loreCost ?? 0;
 
+  // Remove from hand
   let s = mutatePlayer(state, playerId, p => ({
     ...p,
     hand: p.hand.filter(c => c.uid !== cardUid),
-    supply: { ...p.supply, lore: p.supply.lore - loreCost },
   }));
 
   // Add to council
-  const councilEntry = { playerId, card };
   const councils = s.board.councils;
   s = {
     ...s,
@@ -506,12 +818,12 @@ function applyGovern(
       ...s.board,
       councils: {
         ...councils,
-        [council]: [...councils[council], councilEntry],
+        [council]: [...councils[council], { playerId, card }],
       },
     },
   };
 
-  // Gain lore icons as lore
+  // Gain lore from lore icons on governed card
   s = mutatePlayer(s, playerId, p => ({
     ...p,
     supply: { ...p.supply, lore: p.supply.lore + def.loreIcons },
@@ -527,12 +839,111 @@ function applyJourney(state: GameState, playerId: PlayerId, cardUid: string): Ga
 
   const def = getCardDef(card.defId);
 
-  return mutatePlayer(state, playerId, p => ({
+  // Remove from hand, gain lore
+  let s = mutatePlayer(state, playerId, p => ({
     ...p,
     hand: p.hand.filter(c => c.uid !== cardUid),
-    siteOfPower: [...p.siteOfPower, card],
     supply: { ...p.supply, lore: p.supply.lore + def.loreIcons },
   }));
+
+  // Pathfinder → Discard; otherwise → Lost Pile
+  if (def.traits.includes('pathfinder')) {
+    s = mutatePlayer(s, playerId, p => ({
+      ...p,
+      discardPile: [...p.discardPile, card],
+    }));
+  } else {
+    s = { ...s, board: { ...s.board, lostPile: [...s.board.lostPile, card] } };
+  }
+
+  return s;
+}
+
+function applySpendLore(state: GameState, playerId: PlayerId, siteCardUid: string): GameState {
+  const player = getPlayer(state, playerId);
+  const siteCard = player.siteOfPower.find(c => c.uid === siteCardUid);
+  if (!siteCard) return state;
+
+  const def = getCardDef(siteCard.defId);
+  const cost = def.loreCost ?? 0;
+  if (player.supply.lore < cost) return state;
+
+  // Pay cost, remove from site of power
+  let s = mutatePlayer(state, playerId, p => ({
+    ...p,
+    siteOfPower: p.siteOfPower.filter(c => c.uid !== siteCardUid),
+    supply: { ...p.supply, lore: p.supply.lore - cost },
+  }));
+
+  if (def.isHQ) {
+    // HQ cards go to player supply (persistent)
+    s = mutatePlayer(s, playerId, p => ({
+      ...p,
+      hqCards: [...p.hqCards, siteCard],
+    }));
+  } else {
+    // Advanced cards go to hand (or top of deck if hand is full)
+    s = mutatePlayer(s, playerId, p => {
+      if (p.hand.length < p.handSize) {
+        return { ...p, hand: [...p.hand, siteCard] };
+      } else {
+        return { ...p, deck: [siteCard, ...p.deck] };
+      }
+    });
+  }
+
+  return s;
+}
+
+function applyDeploy(
+  state: GameState,
+  playerId: PlayerId,
+  cardUid: string,
+  region: Region
+): GameState {
+  const player = getPlayer(state, playerId);
+  const card = player.hand.find(c => c.uid === cardUid);
+  if (!card) return state;
+
+  const def = getCardDef(card.defId);
+  const deployCmd = def.commands.find(c => c.type === 'deploy');
+  const deployValue = deployCmd?.value ?? 1;
+
+  if (state.board.reserve.influence < deployValue) return state;
+
+  // Remove from hand, mark command used
+  let s = mutatePlayer(state, playerId, p => ({
+    ...p,
+    hand: p.hand.filter(c => c.uid !== cardUid),
+    usedCommands: {
+      ...p.usedCommands,
+      [cardUid]: [...(p.usedCommands[cardUid] ?? []), 'deploy' as const],
+    },
+  }));
+
+  // Card enters the region with influence tokens
+  const cardWithInfluence: CardInstance = { ...card, influenceOnCard: deployValue };
+
+  // Deduct from Reserve
+  s = takeFromReserve(s, 'influence', deployValue);
+
+  // Add to region as Active (face-up)
+  const regionState = s.board.map[region];
+  s = {
+    ...s,
+    board: {
+      ...s.board,
+      map: {
+        ...s.board.map,
+        [region]: {
+          ...regionState,
+          activeCards: [...regionState.activeCards, { playerId, card: cardWithInfluence, faceDown: false }],
+        },
+      },
+    },
+  };
+
+  return s;
 }
 
 function applyRally(state: GameState, playerId: PlayerId, cardUids: string[]): GameState {
@@ -573,15 +984,50 @@ function applyRally(state: GameState, playerId: PlayerId, cardUids: string[]): G
   return s;
 }
 
+// ─── Phase Advancement ─────────────────────────────────────────────────────────
+
 function applyPassAction(state: GameState, playerId: PlayerId): GameState {
   const done = [...state.board.actionStepDone, playerId];
   const allDone = state.players.every(p => done.includes(p.playerId));
-  if (allDone) {
-    return advancePhase(state);
+
+  if (!allDone) {
+    const nextPlayer = getNextPlayer(state, playerId);
+    return { ...state, board: { ...state.board, actionStepDone: done }, activePlayerId: nextPlayer };
   }
-  // Move to next player
-  const nextPlayer = getNextPlayer(state, playerId);
-  return { ...state, board: { ...state.board, actionStepDone: done }, activePlayerId: nextPlayer };
+
+  // All done — handle summer day-action specially
+  if (state.board.phase === 'summer' && state.board.step === 'day-action') {
+    const clashOrder = state.board.clashOrder ?? (['highlands', 'plateau', 'lowlands'] as Region[]);
+    const region = clashOrder[state.board.currentClashIndex];
+
+    // 1. Apply Deadly Night Effects
+    let s = applyDeadlyNight(state, region);
+
+    // 2. Resolve Clash
+    const result = resolveClash(s, region);
+    const rs = s.board.map[region];
+    s = {
+      ...s,
+      board: {
+        ...s.board,
+        actionStepDone: [],
+        map: { ...s.board.map, [region]: { ...rs, clashes: [...rs.clashes, result] } },
+      },
+    };
+
+    if (result.winnerId !== null) {
+      return {
+        ...s,
+        board: { ...s.board, step: 'claim-rewards' },
+        activePlayerId: result.winnerId,
+      };
+    } else {
+      // Tie — advance without rewards
+      return advanceAfterReward(s, region);
+    }
+  }
+
+  return advancePhase({ ...state, board: { ...state.board, actionStepDone: done } });
 }
 
 function advanceTurn(state: GameState, playerId: PlayerId): GameState {
@@ -597,42 +1043,35 @@ function advancePhase(state: GameState): GameState {
   const { phase, step } = state.board;
 
   if (phase === 'spring') {
-    if (step === 'bid') return { ...state, board: { ...state.board, step: 'herald' } };
-    if (step === 'herald') return { ...state, board: { ...state.board, step: 'deploy-cards' } };
-    if (step === 'deploy-cards') return { ...state, board: { ...state.board, step: 'deploy-supporters' } };
+    if (step === 'bid') {
+      return {
+        ...state,
+        board: { ...state.board, step: 'herald', actionStepDone: [] },
+        activePlayerId: state.orderTrack[0],
+      };
+    }
+    if (step === 'herald') {
+      return {
+        ...state,
+        board: { ...state.board, step: 'deploy-cards', actionStepDone: [] },
+        activePlayerId: state.orderTrack[0],
+      };
+    }
+    if (step === 'deploy-cards') {
+      return {
+        ...state,
+        board: { ...state.board, step: 'deploy-supporters', actionStepDone: [] },
+        activePlayerId: state.orderTrack[0],
+      };
+    }
     if (step === 'deploy-supporters') {
+      // Last player on Order Track sets clash markers
       return {
         ...state,
         board: { ...state.board, phase: 'summer', step: 'clash-order', actionStepDone: [] },
+        activePlayerId: state.orderTrack[state.orderTrack.length - 1],
       };
     }
-  }
-
-  if (phase === 'summer') {
-    const clashOrder = state.board.clashOrder ?? ['highlands', 'plateau', 'lowlands'];
-    const nextIdx = state.board.currentClashIndex + 1;
-    if (nextIdx < clashOrder.length) {
-      return {
-        ...state,
-        board: {
-          ...state.board,
-          currentClashIndex: nextIdx,
-          step: 'day-action',
-          actionStepDone: [],
-        },
-      };
-    }
-    // All clashes done, move to Autumn
-    return {
-      ...state,
-      board: {
-        ...state.board,
-        phase: 'autumn',
-        step: 'autumn-actions',
-        actionStepDone: [],
-        currentClashIndex: 0,
-      },
-    };
   }
 
   if (phase === 'autumn') {
@@ -647,30 +1086,119 @@ function advancePhase(state: GameState): GameState {
 }
 
 function advanceToWinter(state: GameState): GameState {
-  // Cleanup: move active cards to discard
-  let s: GameState = { ...state, board: { ...state.board, phase: 'winter' as const, step: 'cleanup', actionStepDone: [] as PlayerId[] } };
+  const REGIONS: Region[] = ['highlands', 'plateau', 'lowlands'];
+  const ALL_LOCS: Location[] = ['castle', 'wilderness', 'harvest-field', 'battlefield', 'shrine', 'necropolis'];
 
-  for (const player of s.players) {
-    const regions: Region[] = ['highlands', 'plateau', 'lowlands'];
-    let discarded: CardInstance[] = [];
+  let s: GameState = {
+    ...state,
+    board: {
+      ...state.board,
+      phase: 'winter' as const,
+      step: 'cleanup',
+      actionStepDone: [] as PlayerId[],
+      clashOrder: null,
+      currentClashIndex: 0,
+    },
+  };
 
-    for (const region of regions) {
-      const regionState = s.board.map[region];
-      const myCards = regionState.activeCards.filter(ac => ac.playerId === player.playerId);
-      discarded = [...discarded, ...myCards.map(ac => ac.card)];
-      const remaining = regionState.activeCards.filter(ac => ac.playerId !== player.playerId);
-      s = {
-        ...s,
-        board: {
-          ...s.board,
-          map: { ...s.board.map, [region]: { ...regionState, activeCards: remaining } },
-        },
-      };
+  // 1. Return heralds to player boards; clear location heraldOwner
+  for (const p of s.players) {
+    s = mutatePlayer(s, p.playerId, pl => ({ ...pl, herald: { location: 'player-board' as const } }));
+  }
+  for (const region of REGIONS) {
+    const rs = s.board.map[region];
+    const updatedLocs = { ...rs.locations };
+    for (const loc of ALL_LOCS) {
+      updatedLocs[loc] = { ...updatedLocs[loc], heraldOwner: null };
+    }
+    s = {
+      ...s,
+      board: {
+        ...s.board,
+        map: { ...s.board.map, [region]: { ...rs, locations: updatedLocs } },
+      },
+    };
+  }
+
+  // 2. Move all Supporters on map to Lost Pile
+  for (const region of REGIONS) {
+    const rs = s.board.map[region];
+    for (const suppEntry of rs.supporters) {
+      for (let i = 0; i < suppEntry.count; i++) {
+        s = {
+          ...s,
+          board: {
+            ...s.board,
+            lostPile: [
+              ...s.board.lostPile,
+              { type: 'supporter' as const, playerId: suppEntry.playerId, supporterId: 0 },
+            ],
+          },
+        };
+      }
+    }
+    s = {
+      ...s,
+      board: {
+        ...s.board,
+        map: { ...s.board.map, [region]: { ...s.board.map[region], supporters: [] } },
+      },
+    };
+  }
+  // Update supporter pieces on player boards
+  for (const p of s.players) {
+    s = mutatePlayer(s, p.playerId, pl => ({
+      ...pl,
+      supporters: pl.supporters.map(sup =>
+        sup.location !== 'player-board' ? { ...sup, location: 'lost-pile' as const } : sup
+      ),
+    }));
+  }
+
+  // 3. Active cards: with Influence → remove 1 token (stay); without → discard
+  for (const region of REGIONS) {
+    const rs = s.board.map[region];
+    const staying: typeof rs.activeCards = [];
+    const going: { card: CardInstance; ownerId: PlayerId }[] = [];
+
+    for (const ac of rs.activeCards) {
+      if (ac.card.influenceOnCard > 0) {
+        staying.push({ ...ac, card: { ...ac.card, influenceOnCard: ac.card.influenceOnCard - 1 } });
+      } else {
+        going.push({ card: ac.card, ownerId: ac.playerId });
+      }
     }
 
-    s = mutatePlayer(s, player.playerId, p => ({
-      ...p,
-      discardPile: [...p.discardPile, ...discarded],
+    s = {
+      ...s,
+      board: {
+        ...s.board,
+        map: {
+          ...s.board.map,
+          [region]: {
+            ...rs,
+            activeCards: staying,
+            clashMarker: null,
+            resolved: false,
+            clashes: [],
+            dayActionPending: [],
+            tiePending: [],
+          },
+        },
+      },
+    };
+
+    for (const { card, ownerId } of going) {
+      s = mutatePlayer(s, ownerId, p => ({ ...p, discardPile: [...p.discardPile, card] }));
+    }
+  }
+
+  // 4. Clear bids, regionCards, usedCommands
+  for (const p of s.players) {
+    s = mutatePlayer(s, p.playerId, pl => ({
+      ...pl,
+      bid: null,
+      bidResolved: false,
       regionCards: [],
       usedCommands: {},
     }));
@@ -680,24 +1208,65 @@ function advanceToWinter(state: GameState): GameState {
 }
 
 function advanceToNewRound(state: GameState): GameState {
-  const { round, maxRounds } = state.board;
-  const nextRound = round + 1;
+  const nextRound = state.board.round + 1;
 
-  if (nextRound > maxRounds) {
-    const { gameOver, winner } = checkWinCondition({ ...state, board: { ...state.board, round: nextRound } });
+  if (nextRound > state.board.maxRounds) {
+    const { gameOver, winner } = checkWinCondition(state);
     return { ...state, gameOver, winner };
   }
 
-  // Refresh deck from discard if empty
   let s = state;
+
+  // Re-sort Order Track by Influence (highest first; tiebreak: maintain previous order)
+  const sorted = [...s.players].sort((a, b) => {
+    const diff = b.supply.influence - a.supply.influence;
+    return diff !== 0 ? diff : a.orderPosition - b.orderPosition;
+  });
+  const newOrderTrack = sorted.map(p => p.playerId);
+  s = {
+    ...s,
+    orderTrack: newOrderTrack,
+    players: s.players.map(p => ({
+      ...p,
+      orderPosition: newOrderTrack.indexOf(p.playerId),
+    })),
+  };
+
+  // Start of Year: draw cards up to hand size; Attrition if deck runs out
   for (const player of s.players) {
-    if (player.deck.length < player.handSize) {
-      s = mutatePlayer(s, player.playerId, p => {
-        const newDeck = shuffleArr([...p.deck, ...p.discardPile]);
-        const newHand = newDeck.splice(0, p.handSize);
-        return { ...p, deck: newDeck, discardPile: [], hand: [...p.hand, ...newHand] };
-      });
+    const deficit = player.handSize - player.hand.length;
+    if (deficit <= 0) continue;
+
+    let deck = [...player.deck];
+    let discard = [...player.discardPile];
+    let hand = [...player.hand];
+    let handSize = player.handSize;
+    let toDraw = deficit;
+
+    while (toDraw > 0) {
+      if (deck.length === 0) {
+        if (discard.length === 0) break;
+        // Attrition: shuffle discard into new deck, reduce hand size by 1
+        deck = shuffleArr(discard);
+        discard = [];
+        handSize = Math.max(3, handSize - 1);
+      }
+      hand.push(deck.shift()!);
+      toDraw--;
     }
+
+    // Trim to new hand size if needed
+    while (hand.length > handSize) {
+      discard.push(hand.pop()!);
+    }
+
+    s = mutatePlayer(s, player.playerId, p => ({
+      ...p,
+      deck,
+      discardPile: discard,
+      hand,
+      handSize,
+    }));
   }
 
   return {
@@ -705,12 +1274,13 @@ function advanceToNewRound(state: GameState): GameState {
     board: {
       ...s.board,
       round: nextRound,
-      phase: 'spring',
+      phase: 'spring' as const,
       step: 'bid',
-      actionStepDone: [],
+      actionStepDone: [] as PlayerId[],
       currentClashIndex: 0,
       clashOrder: null,
     },
+    activePlayerId: newOrderTrack[0],
   };
 }
 
