@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Old King's Crown</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <script type="module" crossorigin src="/the-old-kings-crown/assets/index-BzW72BvA.js"></script>
+  <link rel="stylesheet" crossorigin href="/the-old-kings-crown/assets/index-B5AYZzNZ.css">
+</head>
+<body data-players="4">
+
+<!-- ─────────────────────────── LOBBY ─────────────────────────── -->
+<div id="lobby">
+  <div class="lobby-box">
+    <div class="lobby-title">
+      <span class="title-the">The</span>
+      <span class="title-main">Old King's Crown</span>
+    </div>
+    <p class="lobby-sub">You play as <strong>The Nobility</strong></p>
+    <div class="lobby-section">
+      <p class="lobby-label">How many opponents?</p>
+      <div class="lobby-bot-btns">
+        <button class="lobby-btn" data-bot-count="1">
+          <span class="lobby-btn-count">1</span>
+          <span class="lobby-btn-label">Bot</span>
+          <span class="lobby-btn-desc">2-player game</span>
+        </button>
+        <button class="lobby-btn" data-bot-count="2">
+          <span class="lobby-btn-count">2</span>
+          <span class="lobby-btn-label">Bots</span>
+          <span class="lobby-btn-desc">3-player game</span>
+        </button>
+        <button class="lobby-btn" data-bot-count="3">
+          <span class="lobby-btn-count">3</span>
+          <span class="lobby-btn-label">Bots</span>
+          <span class="lobby-btn-desc">4-player game</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────────────── TOOLTIP ─────────────────────────── -->
+<div id="tooltip" role="tooltip"></div>
+
+<!-- ─────────────────────────── HEADER ─────────────────────────── -->
+<header id="game-header">
+  <div id="game-title">
+    <span class="title-the">The</span>
+    <span class="title-main">Old King's Crown</span>
+  </div>
+  <div id="game-status">
+    <div class="status-chip" id="player-count-chip" title="Number of players — click to switch">
+      <span class="chip-label">Players</span>
+      <div class="player-count-btns">
+        <button class="pc-btn" data-count="2">2</button>
+        <button class="pc-btn" data-count="3">3</button>
+        <button class="pc-btn active" data-count="4">4</button>
+      </div>
+    </div>
+    <div class="status-chip" id="round-chip" title="Current round of the game">
+      <span class="chip-label">Round</span>
+      <span class="chip-value" id="round-value">1 / 5</span>
+    </div>
+    <div class="status-chip active-chip" id="phase-chip" title="Current phase — click to advance (demo)">
+      <span class="chip-label">Phase</span>
+      <span class="chip-value" id="phase-value">Spring</span>
+    </div>
+    <div class="status-chip" id="turn-chip" title="Whose turn it is to act">
+      <span class="chip-label">Active</span>
+      <span class="chip-value" id="turn-value">The Nobility</span>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════ OPPONENT BOARD (TOP) ═══════════════════════ -->
+<section
+  id="opponent-board"
+  class="player-board opponent-board"
+  data-player="2"
+  data-faction="clans"
+  data-zone="player-board"
+  title="Opponent's player area — The Clans"
+>
+  <div class="board-banner clans-banner">
+    <span class="board-banner-label">⛵ The Clans</span>
+    <span class="board-banner-sub">Saga the Unifier</span>
+    <span class="board-banner-supply">
+      <span class="supply-influence" title="Influence in Supply">🪙 <strong id="p2-influence">0</strong></span>
+      <span class="supply-lore" title="Lore in Supply">▲ <strong id="p2-lore">0</strong></span>
+      <span class="hand-size-badge" title="Hand Size">Hand: <strong id="p2-handsize">6</strong></span>
+    </span>
+  </div>
+
+  <div class="board-body">
+    <!-- Left cluster: Deck / Discard / Herald / Favour -->
+    <div class="board-cluster board-cluster--left">
+      <div class="board-zone deck-zone"
+           data-zone="deck" data-player="2"
+           title="Deck: face-down faction cards. Opponent has 13 cards.">
+        <div class="card-back-stack"></div>
+        <span class="zone-label">Deck</span>
+        <span class="zone-count">13</span>
+      </div>
+      <div class="board-zone discard-zone"
+           data-zone="discard" data-player="2"
+           title="Discard Pile: face-up used faction cards.">
+        <div class="card-front-placeholder"></div>
+        <span class="zone-label">Discard</span>
+        <span class="zone-count">0</span>
+      </div>
+      <div class="board-zone herald-zone"
+           data-zone="herald" data-player="2"
+           title="Herald: placed on a Location each Spring to earn bonus Influence.">
+        <div class="herald-piece clans-herald">⛵</div>
+        <span class="zone-label">Herald</span>
+      </div>
+      <div class="board-zone favour-zone"
+           data-zone="kingdoms-favour" data-player="2"
+           title="Kingdom's Favour: grants a Faction-specific Action (3 uses). Claimed by winning Harvest Field.">
+        <div class="favour-disc empty-disc">🏴</div>
+        <span class="zone-label">K's Favour</span>
+      </div>
+    </div>
+
+    <!-- Center cluster: Kingdom Cards + Tactics + Supporters -->
+    <div class="board-cluster board-cluster--center">
+      <div class="board-zone kingdom-cards-zone" data-zone="kingdom-cards" data-player="2"
+           title="Kingdom Card spaces: hold up to 2 Occupied Kingdom Cards. Each requires a Faction Card placed beneath it.">
+        <span class="zone-label">Kingdom Cards</span>
+        <div class="kc-slots">
+          <div class="kc-slot" data-slot="1" data-player="2" data-zone="kc-slot"
+               title="Kingdom Card slot 1 — click to occupy">
+            <div class="kc-card empty" data-zone="kingdom-card">
+              <span class="empty-hint">Kingdom Card</span>
+            </div>
+            <div class="occupying-card empty" data-zone="occupying-card">
+              <span class="empty-hint">Occupying Card</span>
+            </div>
+          </div>
+          <div class="kc-slot" data-slot="2" data-player="2" data-zone="kc-slot"
+               title="Kingdom Card slot 2 — click to occupy">
+            <div class="kc-card empty" data-zone="kingdom-card">
+              <span class="empty-hint">Kingdom Card</span>
+            </div>
+            <div class="occupying-card empty" data-zone="occupying-card">
+              <span class="empty-hint">Occupying Card</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="board-zone tactics-zone" data-zone="tactics" data-player="2"
+           title="Tactic Tiles: 4 unique powerful abilities, each usable once per game (flip to exhausted when used).">
+        <span class="zone-label">Tactics</span>
+        <div class="tactic-tiles">
+          <div class="tactic-tile unexhausted" data-zone="tactic" data-player="2" data-tactic="1"
+               title="Tactic 1 — Unexhausted (ready to use)">
+            <span class="tactic-name">Tactic 1</span>
+            <span class="tactic-state">Ready</span>
+          </div>
+          <div class="tactic-tile unexhausted" data-zone="tactic" data-player="2" data-tactic="2"
+               title="Tactic 2 — Unexhausted (ready to use)">
+            <span class="tactic-name">Tactic 2</span>
+            <span class="tactic-state">Ready</span>
+          </div>
+          <div class="tactic-tile unexhausted" data-zone="tactic" data-player="2" data-tactic="3"
+               title="Tactic 3 — Unexhausted (ready to use)">
+            <span class="tactic-name">Tactic 3</span>
+            <span class="tactic-state">Ready</span>
+          </div>
+          <div class="tactic-tile unexhausted" data-zone="tactic" data-player="2" data-tactic="4"
+               title="Tactic 4 — Unexhausted (ready to use)">
+            <span class="tactic-name">Tactic 4</span>
+            <span class="tactic-state">Ready</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="board-zone supporters-zone" data-zone="supporters" data-player="2"
+           title="Supporters: 5 pieces placed on Regions in Spring to add +1 Strength to Clashes. Moved to Lost Pile in Winter.">
+        <span class="zone-label">Supporters</span>
+        <div class="supporter-pieces">
+          <div class="supporter-piece available clans-sup" data-player="2" data-sup="1" title="Supporter (available)">⛵</div>
+          <div class="supporter-piece available clans-sup" data-player="2" data-sup="2" title="Supporter (available)">⛵</div>
+          <div class="supporter-piece available clans-sup" data-player="2" data-sup="3" title="Supporter (available)">⛵</div>
+          <div class="supporter-piece available clans-sup" data-player="2" data-sup="4" title="Supporter (available)">⛵</div>
+          <div class="supporter-piece available clans-sup" data-player="2" data-sup="5" title="Supporter (available)">⛵</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hand: face-down for opponent -->
+    <div class="board-zone hand-zone hand-zone--facedown"
+         data-zone="hand" data-player="2"
+         title="Hand: opponent's faction cards (hidden). 6 cards.">
+      <span class="zone-label">Hand (6)</span>
+      <div class="hand-cards">
+        <div class="card card-back" data-player="2"></div>
+        <div class="card card-back" data-player="2"></div>
+        <div class="card card-back" data-player="2"></div>
+        <div class="card card-back" data-player="2"></div>
+        <div class="card card-back" data-player="2"></div>
+        <div class="card card-back" data-player="2"></div>
+      </div>
+    </div>
+
+    <!-- Site of Power -->
+    <div class="board-cluster board-cluster--right">
+      <div class="board-zone site-of-power-zone" data-zone="site-of-power" data-player="2"
+           title="Site of Power: holds Advanced Faction Cards and HQ Cards. Acquired by spending Lore tokens.">
+        <span class="zone-label">Site of Power</span>
+        <div class="sop-cards">
+          <div class="sop-card" data-zone="sop-card" data-player="2" title="Advanced / HQ Card slot (5 total)">
+            <span class="sop-hint">Adv.</span>
+          </div>
+          <div class="sop-card" data-zone="sop-card" data-player="2" title="Advanced / HQ Card slot">
+            <span class="sop-hint">Adv.</span>
+          </div>
+          <div class="sop-card" data-zone="sop-card" data-player="2" title="Advanced / HQ Card slot">
+            <span class="sop-hint">Adv.</span>
+          </div>
+          <div class="sop-card hq-card" data-zone="sop-card" data-player="2" title="HQ Card slot">
+            <span class="sop-hint">HQ</span>
+          </div>
+          <div class="sop-card hq-card" data-zone="sop-card" data-player="2" title="HQ Card slot">
+            <span class="sop-hint">HQ</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ CENTER ROW ═══════════════════════ -->
+<div id="center-row">
+
+<!-- P3 SIDE BOARD: The Uprising -->
+<aside id="p3-board" class="side-board" data-player="3" data-faction="uprising">
+  <div class="side-banner uprising-banner">
+    <span class="side-banner-label">🗡 The Uprising</span>
+    <span class="side-banner-hero">Skye Ironfall</span>
+    <span class="side-banner-stats">
+      🪙 <strong id="p3-influence">0</strong>
+      ▲ <strong id="p3-lore">0</strong>
+    </span>
+  </div>
+  <div class="side-body">
+    <div class="side-zone-row">
+      <div class="side-mini-zone" data-zone="deck" data-player="3" title="Deck (13 cards)">
+        <div class="card-back-stack small"></div>
+        <span class="zone-label">Deck <span class="zone-count-inline">13</span></span>
+      </div>
+      <div class="side-mini-zone" data-zone="discard" data-player="3" title="Discard Pile">
+        <div class="card-front-placeholder small"></div>
+        <span class="zone-label">Disc. <span class="zone-count-inline">0</span></span>
+      </div>
+    </div>
+    <div class="side-zone-row">
+      <div class="side-mini-zone" data-zone="herald" data-player="3" title="Herald — place on a Location each Spring">
+        <div class="herald-piece uprising-herald">🗡</div>
+        <span class="zone-label">Herald</span>
+      </div>
+      <div class="side-mini-zone" data-zone="kingdoms-favour" data-player="3" title="Kingdom's Favour slot">
+        <div class="favour-disc empty-disc">🏴</div>
+        <span class="zone-label">Favour</span>
+      </div>
+    </div>
+    <div class="side-section-label">Kingdom Cards</div>
+    <div class="side-kc-row">
+      <div class="side-kc-slot" data-slot="1" data-player="3" data-zone="kc-slot" title="Kingdom Card slot 1">
+        <div class="kc-card empty" data-zone="kingdom-card"><span class="empty-hint">KC</span></div>
+        <div class="occupying-card empty" data-zone="occupying-card"><span class="empty-hint">Occ</span></div>
+      </div>
+      <div class="side-kc-slot" data-slot="2" data-player="3" data-zone="kc-slot" title="Kingdom Card slot 2">
+        <div class="kc-card empty" data-zone="kingdom-card"><span class="empty-hint">KC</span></div>
+        <div class="occupying-card empty" data-zone="occupying-card"><span class="empty-hint">Occ</span></div>
+      </div>
+    </div>
+    <div class="side-section-label">Tactics</div>
+    <div class="side-tactics-row">
+      <div class="tactic-tile unexhausted side-tactic" data-zone="tactic" data-player="3" data-tactic="1" title="Tactic 1 (Uprising)">
+        <span class="tactic-name">T1</span><span class="tactic-state">Ready</span>
+      </div>
+      <div class="tactic-tile unexhausted side-tactic" data-zone="tactic" data-player="3" data-tactic="2" title="Tactic 2 (Uprising)">
+        <span class="tactic-name">T2</span><span class="tactic-state">Ready</span>
+      </div>
+      <div class="tactic-tile unexhausted side-tactic" data-zone="tactic" data-player="3" data-tactic="3" title="Tactic 3 (Uprising)">
+        <span class="tactic-name">T3</span><span class="tactic-state">Ready</span>
+      </div>
+      <div class="tactic-tile unexhausted side-tactic" data-zone="tactic" data-player="3" data-tactic="4" title="Tactic 4 (Uprising)">
+        <span class="tactic-name">T4</span><span class="tactic-state">Ready</span>
+      </div>
+    </div>
+    <div class="side-section-label">Supporters</div>
+    <div class="supporter-pieces side-supporters">
+      <div class="supporter-piece available uprising-sup" data-player="3" data-sup="1" title="Supporter (available)">🗡</div>
+      <div class="supporter-piece available uprising-sup" data-player="3" data-sup="2" title="Supporter (available)">🗡</div>
+      <div class="supporter-piece available uprising-sup" data-player="3" data-sup="3" title="Supporter (available)">🗡</div>
+      <div class="supporter-piece available uprising-sup" data-player="3" data-sup="4" title="Supporter (available)">🗡</div>
+      <div class="supporter-piece available uprising-sup" data-player="3" data-sup="5" title="Supporter (available)">🗡</div>
+    </div>
+    <div class="side-section-label">Hand (6)</div>
+    <div class="side-hand">
+      <div class="card card-back" data-player="3"></div>
+      <div class="card card-back" data-player="3"></div>
+      <div class="card card-back" data-player="3"></div>
+      <div class="card card-back" data-player="3"></div>
+      <div class="card card-back" data-player="3"></div>
+      <div class="card card-back" data-player="3"></div>
+    </div>
+    <div class="side-section-label">Site of Power</div>
+    <div class="side-sop">
+      <div class="sop-card side-sop-card" data-zone="sop-card" data-player="3" title="Advanced Card"><span class="sop-hint">Adv.</span></div>
+      <div class="sop-card side-sop-card" data-zone="sop-card" data-player="3" title="Advanced Card"><span class="sop-hint">Adv.</span></div>
+      <div class="sop-card side-sop-card" data-zone="sop-card" data-player="3" title="Advanced Card"><span class="sop-hint">Adv.</span></div>
+      <div class="sop-card hq-card side-sop-card" data-zone="sop-card" data-player="3" title="HQ Card"><span class="sop-hint">HQ</span></div>
+      <div class="sop-card hq-card side-sop-card" data-zone="sop-card" data-player="3" title="HQ Card"><span class="sop-hint">HQ</span></div>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══════════════════════ KINGDOM BOARD ═══════════════════════ -->
+<main id="kingdom-board" data-zone="kingdom-board">
+
+  <!-- ── ORDER TRACK ── -->
+  <section id="order-track" data-zone="order-track"
+           title="Order Track: determines turn order. Higher Influence = higher position. First player holds Active Player Marker.">
+    <h3 class="section-title">Order Track</h3>
+    <div class="order-slots">
+      <div class="order-slot" data-position="1" data-zone="order-slot"
+           title="1st position — acts first in turn order steps">
+        <div class="order-marker nobility-marker" data-faction="nobility">
+          <span class="order-pos">1st</span>
+          <span class="order-faction">Nobility</span>
+        </div>
+        <div class="active-player-marker" title="Active Player Marker — this player acts next">★</div>
+      </div>
+      <div class="order-slot" data-position="2" data-zone="order-slot"
+           title="2nd position">
+        <div class="order-marker clans-marker" data-faction="clans">
+          <span class="order-pos">2nd</span>
+          <span class="order-faction">Clans</span>
+        </div>
+      </div>
+      <div class="order-slot" data-position="3" data-zone="order-slot"
+           title="3rd position">
+        <div class="order-marker uprising-marker" data-faction="uprising">
+          <span class="order-pos">3rd</span>
+          <span class="order-faction">Uprising</span>
+        </div>
+      </div>
+      <div class="order-slot" data-position="4" data-zone="order-slot"
+           title="4th position">
+        <div class="order-marker gathering-marker" data-faction="gathering">
+          <span class="order-pos">4th</span>
+          <span class="order-faction">Gathering</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── COUNCILS TILE ── -->
+  <section id="councils-tile" data-zone="councils-tile"
+           title="Councils Tile: three seats of power. Place cards here by Governing to gain ongoing bonuses.">
+    <h3 class="section-title">Councils</h3>
+    <div class="councils">
+
+      <div class="council" id="council-relics" data-council="relics"
+           title="Council of Relics (coins): discard cards here when claiming Herald Reward to gain extra Influence per Vote.">
+        <div class="council-header">
+          <span class="council-icon">🪙</span>
+          <span class="council-name">Relics</span>
+        </div>
+        <div class="council-cards-area" data-zone="council-cards" data-council="relics">
+          <div class="council-card-slot empty" title="No cards yet — Govern here in Autumn to add cards"></div>
+        </div>
+        <div class="council-votes" title="Total Votes in this Council">⚒ <span>0</span></div>
+        <p class="council-ability">During Herald Reward: discard cards/markers here to gain 1 Influence per Vote.</p>
+      </div>
+
+      <div class="council" id="council-secrets" data-council="secrets"
+           title="Council of Secrets (scroll): place Faction Markers on Locations each Spring equal to your Votes. 4+ markers = claim Location Reward (no Influence).">
+        <div class="council-header">
+          <span class="council-icon">📜</span>
+          <span class="council-name">Secrets</span>
+        </div>
+        <div class="council-cards-area" data-zone="council-cards" data-council="secrets">
+          <div class="council-card-slot empty" title="No cards yet"></div>
+        </div>
+        <div class="council-votes" title="Total Votes">⚒ <span>0</span></div>
+        <p class="council-ability">Spring Action: place Faction Markers on Locations equal to Votes. 4+ = claim Location Reward.</p>
+      </div>
+
+      <div class="council" id="council-oaths" data-council="oaths"
+           title="Council of Oaths (sword): Autumn Action — return Supporters from Map/Lost Pile to your board equal to Votes.">
+        <div class="council-header">
+          <span class="council-icon">⚔</span>
+          <span class="council-name">Oaths</span>
+        </div>
+        <div class="council-cards-area" data-zone="council-cards" data-council="oaths">
+          <div class="council-card-slot empty" title="No cards yet"></div>
+        </div>
+        <div class="council-votes" title="Total Votes">⚒ <span>0</span></div>
+        <p class="council-ability">Autumn Action: return Supporters from Map / Lost Pile equal to Votes (+1 if most Votes).</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── GREAT ROAD ── -->
+  <section id="great-road" data-zone="great-road"
+           title="Great Road: the Kingdom Card market. 4 face-up cards available to bid for each Spring.">
+    <h3 class="section-title">Great Road</h3>
+    <div class="great-road-inner">
+
+      <div class="board-zone kingdom-discard" data-zone="kingdom-discard"
+           title="Kingdom Discard: discarded Kingdom Cards, face-up and public.">
+        <div class="card-front-placeholder small"></div>
+        <span class="zone-label">K. Discard</span>
+      </div>
+
+      <div class="road-divider"></div>
+
+      <div class="kc-road-slot" data-slot="1" data-zone="great-road-slot"
+           title="Kingdom Card slot 1 — rightmost, revealed last. Bid in Spring to take.">
+        <div class="kc-road-card" data-zone="kingdom-card-road">
+          <div class="kc-road-card-inner">
+            <div class="kc-suit kc-suit--coins" title="Coins suit: focused on gaining Influence and Lore">🪙</div>
+            <div class="kc-title">Remote Bylines</div>
+            <div class="kc-text">If you have an active card, gain 1 Influence. Otherwise gain 1 Influence.</div>
+          </div>
+        </div>
+      </div>
+      <div class="kc-road-slot" data-slot="2" data-zone="great-road-slot"
+           title="Kingdom Card slot 2">
+        <div class="kc-road-card" data-zone="kingdom-card-road">
+          <div class="kc-road-card-inner">
+            <div class="kc-suit kc-suit--scroll" title="Scroll suit: cunning and manipulation">📜</div>
+            <div class="kc-title">The Boatman</div>
+            <div class="kc-text">Swap a card in your Hand with one of your cards in the Lost Pile.</div>
+          </div>
+        </div>
+      </div>
+      <div class="kc-road-slot" data-slot="3" data-zone="great-road-slot"
+           title="Kingdom Card slot 3">
+        <div class="kc-road-card" data-zone="kingdom-card-road">
+          <div class="kc-road-card-inner">
+            <div class="kc-suit kc-suit--sword" title="Sword suit: military strength and Elimination">⚔</div>
+            <div class="kc-title">Watchers at the Walls</div>
+            <div class="kc-text">This card has the Invulnerable trait while Active.</div>
+          </div>
+        </div>
+      </div>
+      <div class="kc-road-slot" data-slot="4" data-zone="great-road-slot"
+           title="Kingdom Card slot 4 — leftmost, first to be revealed">
+        <div class="kc-road-card" data-zone="kingdom-card-road">
+          <div class="kc-road-card-inner">
+            <div class="kc-suit kc-suit--coins" title="Coins suit">🪙</div>
+            <div class="kc-title">Printing Press</div>
+            <div class="kc-text">At end of game, gain 1 Influence for every 2 Lore in your Supply.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="road-divider"></div>
+
+      <div class="board-zone kingdom-deck" data-zone="kingdom-deck"
+           title="Kingdom Deck: face-down stack of all remaining Kingdom Cards. Top card flipped face-up after repopulating.">
+        <div class="card-back-stack"></div>
+        <span class="zone-label">K. Deck</span>
+        <span class="zone-count">47</span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── MAP ── -->
+  <section id="map" data-zone="map" title="The Map: three Regions where Clashes take place each Summer.">
+    <h3 class="section-title">The Map</h3>
+
+    <!-- Season indicator along the side -->
+    <div id="season-track" title="Current phase in the Round">
+      <div class="season-step active" data-season="spring" title="Spring: Bid for Kingdom Cards, place Heralds and cards next to Regions">🌿 Spring</div>
+      <div class="season-step" data-season="summer" title="Summer: Resolve Clashes across all three Regions">☀ Summer</div>
+      <div class="season-step" data-season="autumn" title="Autumn: Govern into Councils, Journey for Lore">🍂 Autumn</div>
+      <div class="season-step" data-season="winter" title="Winter: Resolve Effects, Cleanup, advance Round">❄ Winter</div>
+    </div>
+
+    <!-- HIGHLANDS -->
+    <div class="region" id="region-highlands" data-region="highlands"
+         title="The Highlands: Castle and Wilderness Locations. Earn Influence and Govern/Journey rewards.">
+      <div class="region-label-bar">
+        <span class="region-name">The Highlands</span>
+        <div class="clash-marker-slot" data-region="highlands" title="Clash Marker: indicates order of Clash resolution. Placed by last player on Order Track.">
+          <div class="clash-marker" data-value="I">I</div>
+        </div>
+      </div>
+      <div class="region-body">
+        <!-- Player card slots -->
+        <div class="region-card-slots" data-region="highlands">
+          <div class="region-card-slot" data-player="1" data-region="highlands" data-zone="region-card-slot"
+               title="Nobility's face-down card for Highlands Clash — placed in Spring, revealed in Summer">
+            <div class="card card-back faction-card-slot" data-player="1">
+              <span class="slot-player-label nobility-label">P1</span>
+            </div>
+          </div>
+          <div class="region-card-slot" data-player="2" data-region="highlands" data-zone="region-card-slot"
+               title="Clans' face-down card for Highlands Clash">
+            <div class="card card-back faction-card-slot" data-player="2">
+              <span class="slot-player-label clans-label">P2</span>
+            </div>
+          </div>
+          <div class="region-card-slot" data-player="3" data-region="highlands" data-zone="region-card-slot"
+               title="Uprising's face-down card for Highlands Clash">
+            <div class="card card-back faction-card-slot" data-player="3">
+              <span class="slot-player-label uprising-label">P3</span>
+            </div>
+          </div>
+          <div class="region-card-slot" data-player="4" data-region="highlands" data-zone="region-card-slot"
+               title="Gathering's face-down card for Highlands Clash">
+            <div class="card card-back faction-card-slot" data-player="4">
+              <span class="slot-player-label gathering-label">P4</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Supporter display for region -->
+        <div class="region-supporters" data-region="highlands" data-zone="region-supporters"
+             title="Supporters placed on this Region. Each adds +1 Strength to your first Clash here.">
+          <span class="sup-label">Supporters</span>
+          <div class="sup-display" id="sup-highlands"></div>
+        </div>
+
+        <!-- Locations -->
+        <div class="locations">
+          <div class="location" id="loc-castle" data-location="castle" data-region="highlands"
+               data-zone="location"
+               title="Castle: Gain 1 Influence. Govern with 1 card (removes all others from that Council).">
+            <div class="location-inner">
+              <div class="location-name">Castle</div>
+              <div class="herald-slot" data-location="castle" data-zone="herald-slot"
+                   title="Herald slot — place your Herald here in Spring for bonus Influence rewards">
+                <span class="herald-empty">◎</span>
+              </div>
+              <div class="location-reward">
+                <span>Gain 1 🪙</span>
+                <span class="reward-extra">Govern with 1 card</span>
+              </div>
+              <div class="faction-markers" data-location="castle"
+                   title="Faction Markers: placed via Council of Secrets. 4+ = claim Location Reward.">
+              </div>
+            </div>
+          </div>
+
+          <div class="location" id="loc-wilderness" data-location="wilderness" data-region="highlands"
+               data-zone="location"
+               title="Wilderness: Gain 1 Influence. Journey with 1 Active or Hand card.">
+            <div class="location-inner">
+              <div class="location-name">Wilderness</div>
+              <div class="herald-slot" data-location="wilderness" data-zone="herald-slot"
+                   title="Herald slot">
+                <span class="herald-empty">◎</span>
+              </div>
+              <div class="location-reward">
+                <span>Gain 1 🪙</span>
+                <span class="reward-extra">Journey with 1 Active / Hand card</span>
+              </div>
+              <div class="faction-markers" data-location="wilderness"
+                   title="Faction Markers for Council of Secrets"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLATEAU -->
+    <div class="region" id="region-plateau" data-region="plateau"
+         title="The Plateau: Harvest Field (Kingdom's Favour + 1 Influence) and Battlefield (2 Influence).">
+      <div class="region-label-bar">
+        <span class="region-name">The Plateau</span>
+        <div class="clash-marker-slot" data-region="plateau" title="Clash Marker for Plateau">
+          <div class="clash-marker" data-value="II">II</div>
+        </div>
+      </div>
+      <div class="region-body">
+        <div class="region-card-slots" data-region="plateau">
+          <div class="region-card-slot" data-player="1" data-region="plateau" data-zone="region-card-slot"
+               title="Nobility's face-down card for Plateau Clash">
+            <div class="card card-back faction-card-slot" data-player="1">
+              <span class="slot-player-label nobility-label">P1</span>
+            </div>
+          </div>
+          <div class="region-card-slot" data-player="2" data-region="plateau" data-zone="region-card-slot"
+               title="Clans' face-down card for Plateau Clash">
+            <div class="card card-back faction-card-slot" data-player="2">
+              <span class="slot-player-label clans-label">P2</span>
+            </div>
+          </div>
+          <div class="region-card-slot" data-player="3" data-region="plateau" data-zone="region-card-slot"
+               title="Uprising's face-down card for Plateau Clash">
+            <div class="card card-back faction-card-slot" data-player="3">
+              <span class="slot-player-label uprising-label">P3</span>
+            </div>
+          </div>
+          <div class="region-card-slot" data-player="4" data-region="plateau" data-zone="region-card-slot"
+               title="Gathering's face-down card for Plateau Clash">
+            <div class="card card-back faction-card-slot" data-player="4">
+              <span class="slot-player-label gathering-label">P4</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="region-supporters" data-region="plateau" data-zone="region-supporters"
+             title="Supporters on the Plateau">
+          <span class="sup-label">Supporters</span>
+          <div class="sup-display" id="sup-plateau"></div>
+        </div>
+
+        <div class="locations">
+          <div class="location location--harvest" id="loc-harvest-field"
+               data-location="harvest-field" data-region="plateau"
+               data-zone="location"
+               title="Harvest Field: Gain 1 Influence + claim the Kingdom's Favour disc (3 uses of Faction-specific Action).">
+            <div class="location-inner">
+              <div class="location-name">Harvest Field</div>
+              <div class="herald-slot" data-location="harvest-field" data-zone="herald-slot"
+                   title="Herald slot">
+                <span class="herald-empty">◎</span>
+              </div>
+              <div class="location-reward">
+                <span>Gain 1 🪙</span>
+                <span class="reward-extra">+ Claim Kingdom's Favour 🏴</span>
+              </div>
+              <!-- Kingdom's Favour disc starts here -->
+              <div class="kingdoms-favour-disc" id="favour-disc" data-zone="kingdoms-favour-disc"
+                   title="Kingdom's Favour disc: grants Faction-specific Action (3 uses). Tiebreaker at game end.">
+                <span class="favour-icon">🏴</span>
+                <span class="favour-uses">III</span>
+              </div>
+              <div class="faction-markers" data-location="harvest-field"
+                   title="Faction Markers"></div>
+            </div>
+          </div>
+
+          <div class="location" id="loc-battlefield" data-location="battlefield" data-region="plateau"
+               data-zone="location"
+               title="Battlefield: Gain 2 Influence. Strong military reward.">
+            <div class="location-inner">
+              <div class="location-name">Battlefield</div>
+              <div class="herald-slot" data-location="battlefield" data-zone="herald-slot"
+                   title="Herald slot">
+                <span class="herald-empty">◎</span>
+              </div>
+              <div class="location-reward">
+                <span>Gain 2 🪙</span>
+              </div>
+              <div class="faction-markers" data-location="battlefield"
+                   title="Faction Markers"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOWLANDS -->
+    <div class="region" id="region-lowlands" data-region="lowlands"
+         title="The Lowlands: Shrine (deck manipulation) and Necropolis (draw from Discard).">
+      <div class="region-label-bar">
+        <span class="region-name">The Lowlands</span>
+        <div class="clash-marker-slot" data-region="lowlands" title="Clash Marker for Lowlands">
+          <div class="clash-marker" data-value="III">III</div>
+        </div>
+      </div>
+      <div class="region-body">
+        <div class="region-card-slots" data-region="lowlands">
+          <div class="region-card-slot" data-player="1" data-region="lowlands" data-zone="region-card-slot"
+               title="Nobility's face-down card for Lowlands Clash">
+            <div class="card card-back faction-card-slot" data-player="1">
+              <span class="slot-player-label nobility-label">P1</span>
+            </div>
+          </div>
+          <div class="region-card-slot" data-player="2" data-region="lowlands" data-zone="region-card-slot"
+               title="Clans' face-down card for Lowlands Clash">
+            <div class="card card-back faction-card-slot" data-player="2">
+              <span class="slot-player-label clans-label">P2</span>
+            </div>
+          </div>
+          <div class="region-card-slot" data-player="3" data-region="lowlands" data-zone="region-card-slot"
+               title="Uprising's face-down card for Lowlands Clash">
+            <div class="card card-back faction-card-slot" data-player="3">
+              <span class="slot-player-label uprising-label">P3</span>
+            </div>
+          </div>
+          <div class="region-card-slot" data-player="4" data-region="lowlands" data-zone="region-card-slot"
+               title="Gathering's face-down card for Lowlands Clash">
+            <div class="card card-back faction-card-slot" data-player="4">
+              <span class="slot-player-label gathering-label">P4</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="region-supporters" data-region="lowlands" data-zone="region-supporters"
+             title="Supporters on the Lowlands">
+          <span class="sup-label">Supporters</span>
+          <div class="sup-display" id="sup-lowlands"></div>
+        </div>
+
+        <div class="locations">
+          <div class="location location--shrine" id="loc-shrine" data-location="shrine" data-region="lowlands"
+               data-zone="location"
+               title="Shrine: Gain 1 Influence. Move up to 3 Active/Hand cards to the bottom of your Deck.">
+            <div class="location-inner">
+              <div class="location-name">Shrine</div>
+              <div class="herald-slot" data-location="shrine" data-zone="herald-slot"
+                   title="Herald slot">
+                <span class="herald-empty">◎</span>
+              </div>
+              <div class="location-reward">
+                <span>Gain 1 🪙</span>
+                <span class="reward-extra">Move up to 3 cards to bottom of Deck</span>
+              </div>
+              <div class="faction-markers" data-location="shrine"
+                   title="Faction Markers"></div>
+            </div>
+          </div>
+
+          <div class="location location--necropolis" id="loc-necropolis"
+               data-location="necropolis" data-region="lowlands"
+               data-zone="location"
+               title="Necropolis: Gain 1 Influence. Shuffle Discard Pile and draw up to 3 cards; may discard any from Hand.">
+            <div class="location-inner">
+              <div class="location-name">Necropolis</div>
+              <div class="herald-slot" data-location="necropolis" data-zone="herald-slot"
+                   title="Herald slot">
+                <span class="herald-empty">◎</span>
+              </div>
+              <div class="location-reward">
+                <span>Gain 1 🪙</span>
+                <span class="reward-extra">Shuffle Discard, draw up to 3</span>
+              </div>
+              <div class="faction-markers" data-location="necropolis"
+                   title="Faction Markers"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section><!-- /map -->
+
+  <!-- ── BOTTOM BAR: Reserve / Round Track / Lost Pile ── -->
+  <section id="board-bottom" data-zone="board-bottom">
+
+    <div class="board-zone reserve-zone" data-zone="reserve"
+         title="Reserve: communal bank of all Influence and Lore tokens. Tokens come from here when gained.">
+      <span class="zone-label">Reserve</span>
+      <div class="token-stacks">
+        <div class="token-stack" title="Influence tokens in Reserve (48 total — 32 × 1-value, 16 × 5-value)">
+          <div class="token token-influence">🪙</div>
+          <span class="token-count" id="reserve-influence">48</span>
+          <span class="token-label">Influence</span>
+        </div>
+        <div class="token-stack" title="Lore tokens in Reserve (20 total)">
+          <div class="token token-lore">▲</div>
+          <span class="token-count" id="reserve-lore">20</span>
+          <span class="token-label">Lore</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="board-zone round-track-zone" data-zone="round-track"
+         title="Round Track: tracks current Round. Marker advances each Winter.">
+      <span class="zone-label">Round Track</span>
+      <div class="round-slots">
+        <div class="round-slot active" data-round="1" title="Round 1 — current round">
+          <span>1</span>
+          <div class="round-marker">👑</div>
+        </div>
+        <div class="round-slot" data-round="2" title="Round 2">2</div>
+        <div class="round-slot" data-round="3" title="Round 3">3</div>
+        <div class="round-slot" data-round="4" title="Round 4">4</div>
+        <div class="round-slot" data-round="5" title="Round 5 — final round (Standard)">5</div>
+        <div class="round-slot dimmed" data-round="6" title="Round 6 — Extended game only">6</div>
+      </div>
+    </div>
+
+    <div class="board-zone lost-pile-zone" data-zone="lost-pile"
+         title="Lost Pile: communal pile for Eliminated cards, spent Supporters, and Journeyed cards. Public information.">
+      <div class="pile-visual empty-pile">
+        <span class="pile-icon">✝</span>
+      </div>
+      <span class="zone-label">Lost Pile</span>
+      <span class="zone-count">0</span>
+    </div>
+
+    <div class="board-zone bid-zone" id="bid-area" data-zone="bid-area"
+         title="Bid Area: revealed during Spring Resolve Bids step. Each player places one face-down card here simultaneously.">
+      <span class="zone-label">Bid Area</span>
+      <div class="bid-slots">
+        <div class="bid-slot" data-player="1" data-zone="bid-slot"
+             title="Nobility's Bid — placed face-down in Spring">
+          <div class="card card-face-down-bid">P1 Bid</div>
+        </div>
+        <div class="bid-slot" data-player="2" data-zone="bid-slot"
+             title="Clans' Bid — placed face-down in Spring">
+          <div class="card card-face-down-bid">P2 Bid</div>
+        </div>
+        <div class="bid-slot" data-player="3" data-zone="bid-slot"
+             title="Uprising's Bid — placed face-down in Spring">
+          <div class="card card-face-down-bid">P3 Bid</div>
+        </div>
+        <div class="bid-slot" data-player="4" data-zone="bid-slot"
+             title="Gathering's Bid — placed face-down in Spring">
+          <div class="card card-face-down-bid">P4 Bid</div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+</main><!-- /kingdom-board -->
+
+<!-- P4 SIDE BOARD: The Gathering -->
+<aside id="p4-board" class="side-board" data-player="4" data-faction="gathering">
+  <div class="side-banner gathering-banner">
+    <span class="side-banner-label">🌙 The Gathering</span>
+    <span class="side-banner-hero">Mira of the Veil</span>
+    <span class="side-banner-stats">
+      🪙 <strong id="p4-influence">0</strong>
+      ▲ <strong id="p4-lore">0</strong>
+    </span>
+  </div>
+  <div class="side-body">
+    <div class="side-zone-row">
+      <div class="side-mini-zone" data-zone="deck" data-player="4" title="Deck (13 cards)">
+        <div class="card-back-stack small"></div>
+        <span class="zone-label">Deck <span class="zone-count-inline">13</span></span>
+      </div>
+      <div class="side-mini-zone" data-zone="discard" data-player="4" title="Discard Pile">
+        <div class="card-front-placeholder small"></div>
+        <span class="zone-label">Disc. <span class="zone-count-inline">0</span></span>
+      </div>
+    </div>
+    <div class="side-zone-row">
+      <div class="side-mini-zone" data-zone="herald" data-player="4" title="Herald — place on a Location each Spring">
+        <div class="herald-piece gathering-herald">🌙</div>
+        <span class="zone-label">Herald</span>
+      </div>
+      <div class="side-mini-zone" data-zone="kingdoms-favour" data-player="4" title="Kingdom's Favour slot">
+        <div class="favour-disc empty-disc">🏴</div>
+        <span class="zone-label">Favour</span>
+      </div>
+    </div>
+    <div class="side-section-label">Kingdom Cards</div>
+    <div class="side-kc-row">
+      <div class="side-kc-slot" data-slot="1" data-player="4" data-zone="kc-slot" title="Kingdom Card slot 1">
+        <div class="kc-card empty" data-zone="kingdom-card"><span class="empty-hint">KC</span></div>
+        <div class="occupying-card empty" data-zone="occupying-card"><span class="empty-hint">Occ</span></div>
+      </div>
+      <div class="side-kc-slot" data-slot="2" data-player="4" data-zone="kc-slot" title="Kingdom Card slot 2">
+        <div class="kc-card empty" data-zone="kingdom-card"><span class="empty-hint">KC</span></div>
+        <div class="occupying-card empty" data-zone="occupying-card"><span class="empty-hint">Occ</span></div>
+      </div>
+    </div>
+    <div class="side-section-label">Tactics</div>
+    <div class="side-tactics-row">
+      <div class="tactic-tile unexhausted side-tactic" data-zone="tactic" data-player="4" data-tactic="1" title="Tactic 1 (Gathering)">
+        <span class="tactic-name">T1</span><span class="tactic-state">Ready</span>
+      </div>
+      <div class="tactic-tile unexhausted side-tactic" data-zone="tactic" data-player="4" data-tactic="2" title="Tactic 2 (Gathering)">
+        <span class="tactic-name">T2</span><span class="tactic-state">Ready</span>
+      </div>
+      <div class="tactic-tile unexhausted side-tactic" data-zone="tactic" data-player="4" data-tactic="3" title="Tactic 3 (Gathering)">
+        <span class="tactic-name">T3</span><span class="tactic-state">Ready</span>
+      </div>
+      <div class="tactic-tile unexhausted side-tactic" data-zone="tactic" data-player="4" data-tactic="4" title="Tactic 4 (Gathering)">
+        <span class="tactic-name">T4</span><span class="tactic-state">Ready</span>
+      </div>
+    </div>
+    <div class="side-section-label">Supporters</div>
+    <div class="supporter-pieces side-supporters">
+      <div class="supporter-piece available gathering-sup" data-player="4" data-sup="1" title="Supporter (available)">🌙</div>
+      <div class="supporter-piece available gathering-sup" data-player="4" data-sup="2" title="Supporter (available)">🌙</div>
+      <div class="supporter-piece available gathering-sup" data-player="4" data-sup="3" title="Supporter (available)">🌙</div>
+      <div class="supporter-piece available gathering-sup" data-player="4" data-sup="4" title="Supporter (available)">🌙</div>
+      <div class="supporter-piece available gathering-sup" data-player="4" data-sup="5" title="Supporter (available)">🌙</div>
+    </div>
+    <div class="side-section-label">Hand (6)</div>
+    <div class="side-hand">
+      <div class="card card-back" data-player="4"></div>
+      <div class="card card-back" data-player="4"></div>
+      <div class="card card-back" data-player="4"></div>
+      <div class="card card-back" data-player="4"></div>
+      <div class="card card-back" data-player="4"></div>
+      <div class="card card-back" data-player="4"></div>
+    </div>
+    <div class="side-section-label">Site of Power</div>
+    <div class="side-sop">
+      <div class="sop-card side-sop-card" data-zone="sop-card" data-player="4" title="Advanced Card"><span class="sop-hint">Adv.</span></div>
+      <div class="sop-card side-sop-card" data-zone="sop-card" data-player="4" title="Advanced Card"><span class="sop-hint">Adv.</span></div>
+      <div class="sop-card side-sop-card" data-zone="sop-card" data-player="4" title="Advanced Card"><span class="sop-hint">Adv.</span></div>
+      <div class="sop-card hq-card side-sop-card" data-zone="sop-card" data-player="4" title="HQ Card"><span class="sop-hint">HQ</span></div>
+      <div class="sop-card hq-card side-sop-card" data-zone="sop-card" data-player="4" title="HQ Card"><span class="sop-hint">HQ</span></div>
+    </div>
+  </div>
+</aside>
+
+</div><!-- /center-row -->
+
+<!-- ═══════════════════════ CURRENT PLAYER BOARD (BOTTOM) ═══════════════════════ -->
+<section
+  id="player-board"
+  class="player-board current-player-board"
+  data-player="1"
+  data-faction="nobility"
+  data-zone="player-board"
+  title="Your player area — The Nobility"
+>
+  <div class="board-banner nobility-banner">
+    <span class="board-banner-label">👑 The Nobility</span>
+    <span class="board-banner-sub">Titus of Dawns &amp; Dusks</span>
+    <span class="board-banner-supply">
+      <span class="supply-influence" title="Influence in your Supply">🪙 <strong id="p1-influence">0</strong></span>
+      <span class="supply-lore" title="Lore in your Supply">▲ <strong id="p1-lore">0</strong></span>
+      <span class="hand-size-badge" title="Current Hand Size (min 3, max 8). Attrition reduces this.">Hand: <strong id="p1-handsize">6</strong></span>
+    </span>
+  </div>
+
+  <div class="board-body">
+    <!-- Left cluster: Deck / Discard / Herald / Favour -->
+    <div class="board-cluster board-cluster--left">
+      <div class="board-zone deck-zone"
+           data-zone="deck" data-player="1"
+           title="Your Deck: face-down faction cards. Draw up to Hand Size at Start of Year. Attrition occurs if Deck is empty.">
+        <div class="card-back-stack"></div>
+        <span class="zone-label">Deck</span>
+        <span class="zone-count">12</span>
+      </div>
+      <div class="board-zone discard-zone"
+           data-zone="discard" data-player="1"
+           title="Your Discard Pile: face-up used faction cards. Visible to all players.">
+        <div class="card-front-placeholder"></div>
+        <span class="zone-label">Discard</span>
+        <span class="zone-count">0</span>
+      </div>
+      <div class="board-zone herald-zone"
+           data-zone="herald" data-player="1"
+           title="Your Herald: place on a Location each Spring. Earns +1 Influence and steals from opponents sharing that Location.">
+        <div class="herald-piece nobility-herald">👑</div>
+        <span class="zone-label">Herald</span>
+      </div>
+      <div class="board-zone favour-zone"
+           data-zone="kingdoms-favour" data-player="1"
+           title="Kingdom's Favour slot: holds the disc when you win Harvest Field. Grants 3 uses of your Faction-specific Action.">
+        <div class="favour-disc empty-disc">🏴</div>
+        <span class="zone-label">K's Favour</span>
+      </div>
+    </div>
+
+    <!-- Center cluster: Kingdom Cards + Tactics + Supporters -->
+    <div class="board-cluster board-cluster--center">
+      <div class="board-zone kingdom-cards-zone" data-zone="kingdom-cards" data-player="1"
+           title="Your Kingdom Card spaces: up to 2 Occupied Kingdom Cards. The Faction Card beneath Occupies (guards) each one.">
+        <span class="zone-label">Kingdom Cards</span>
+        <div class="kc-slots">
+          <div class="kc-slot" data-slot="1" data-player="1" data-zone="kc-slot"
+               title="Kingdom Card slot 1 — bid and win a Kingdom Card in Spring to place here">
+            <div class="kc-card empty" data-zone="kingdom-card">
+              <span class="empty-hint">Kingdom Card</span>
+            </div>
+            <div class="occupying-card empty" data-zone="occupying-card">
+              <span class="empty-hint">Occupying Card</span>
+            </div>
+          </div>
+          <div class="kc-slot" data-slot="2" data-player="1" data-zone="kc-slot"
+               title="Kingdom Card slot 2">
+            <div class="kc-card empty" data-zone="kingdom-card">
+              <span class="empty-hint">Kingdom Card</span>
+            </div>
+            <div class="occupying-card empty" data-zone="occupying-card">
+              <span class="empty-hint">Occupying Card</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="board-zone tactics-zone" data-zone="tactics" data-player="1"
+           title="Your 4 Tactic Tiles: powerful unique abilities. Flip to exhausted when used (cannot be reused unless refreshed).">
+        <span class="zone-label">Tactics</span>
+        <div class="tactic-tiles">
+          <div class="tactic-tile unexhausted" data-zone="tactic" data-player="1" data-tactic="1"
+               title="School of the Stones — Tactic 1 (Nobility). Click to exhaust.">
+            <span class="tactic-name">School of Stones</span>
+            <span class="tactic-state">Ready</span>
+          </div>
+          <div class="tactic-tile unexhausted" data-zone="tactic" data-player="1" data-tactic="2"
+               title="Regal Guard — Tactic 2 (Nobility)">
+            <span class="tactic-name">Regal Guard</span>
+            <span class="tactic-state">Ready</span>
+          </div>
+          <div class="tactic-tile unexhausted" data-zone="tactic" data-player="1" data-tactic="3"
+               title="Martial Law — Tactic 3 (Nobility)">
+            <span class="tactic-name">Martial Law</span>
+            <span class="tactic-state">Ready</span>
+          </div>
+          <div class="tactic-tile unexhausted" data-zone="tactic" data-player="1" data-tactic="4"
+               title="Safehouses — Tactic 4 (Nobility)">
+            <span class="tactic-name">Safehouses</span>
+            <span class="tactic-state">Ready</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="board-zone supporters-zone" data-zone="supporters" data-player="1"
+           title="Your 5 Supporters: place on Regions in Spring Action Step (+1 Strength per Supporter to first Clash). Moved to Lost Pile in Winter.">
+        <span class="zone-label">Supporters</span>
+        <div class="supporter-pieces">
+          <div class="supporter-piece available nobility-sup" data-player="1" data-sup="1" title="Supporter (available — place on a Region in Spring)">👑</div>
+          <div class="supporter-piece available nobility-sup" data-player="1" data-sup="2" title="Supporter (available)">👑</div>
+          <div class="supporter-piece available nobility-sup" data-player="1" data-sup="3" title="Supporter (available)">👑</div>
+          <div class="supporter-piece available nobility-sup" data-player="1" data-sup="4" title="Supporter (available)">👑</div>
+          <div class="supporter-piece available nobility-sup" data-player="1" data-sup="5" title="Supporter (available)">👑</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hand: face-up for current player -->
+    <div class="board-zone hand-zone hand-zone--faceup"
+         data-zone="hand" data-player="1"
+         title="Your Hand: Faction Cards you hold. Private — only you can see them. Place face-down next to Regions in Spring, or use as your Bid.">
+      <span class="zone-label">Hand (6)</span>
+      <div class="hand-cards">
+        <!-- Heir card always starts in hand -->
+        <div class="card card-front heir-card" data-player="1" data-card-type="heir"
+             title="Titus of Dawns &amp; Dusks — Heir card (Strength 10, Rally self). Always starts in Hand.">
+          <div class="card-strength">10</div>
+          <div class="card-archetype heir-archetype">👑</div>
+          <div class="card-name">Titus of Dawns &amp; Dusks</div>
+          <div class="card-command">Rally (self)</div>
+        </div>
+        <div class="card card-front" data-player="1"
+             title="Faction Card (Strength 8, Resilient trait)">
+          <div class="card-strength">8</div>
+          <div class="card-archetype">⚔</div>
+          <div class="card-name">Watchers at the Walls</div>
+          <div class="card-trait trait-resilient">Resilient</div>
+        </div>
+        <div class="card card-front" data-player="1"
+             title="Faction Card (Strength 6, Ambush command)">
+          <div class="card-strength">6</div>
+          <div class="card-archetype">🐴</div>
+          <div class="card-name">Cavalry Unit</div>
+          <div class="card-command">Ambush</div>
+        </div>
+        <div class="card card-front" data-player="1"
+             title="Faction Card (Strength 4, Flank command)">
+          <div class="card-strength">4</div>
+          <div class="card-archetype">🏰</div>
+          <div class="card-name">Castle Guard</div>
+          <div class="card-command">Flank</div>
+        </div>
+        <div class="card card-front" data-player="1"
+             title="Faction Card (Strength 3, Pathfinder trait)">
+          <div class="card-strength">3</div>
+          <div class="card-archetype">🗡</div>
+          <div class="card-name">Scout</div>
+          <div class="card-trait trait-pathfinder">Pathfinder</div>
+        </div>
+        <div class="card card-front" data-player="1"
+             title="Faction Card (Strength 1, Deploy command)">
+          <div class="card-strength">1</div>
+          <div class="card-archetype">🛡</div>
+          <div class="card-name">Woe</div>
+          <div class="card-command">Deploy (1)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Site of Power -->
+    <div class="board-cluster board-cluster--right">
+      <div class="board-zone site-of-power-zone" data-zone="site-of-power" data-player="1"
+           title="Your Site of Power: holds up to 5 Advanced/HQ Cards. Spend Lore tokens gained by Journeying to acquire them.">
+        <span class="zone-label">Site of Power</span>
+        <div class="sop-cards">
+          <div class="sop-card" data-zone="sop-card" data-player="1"
+               title="Advanced Faction Card (costs Lore to acquire)">
+            <span class="sop-hint">Adv.</span>
+          </div>
+          <div class="sop-card" data-zone="sop-card" data-player="1"
+               title="Advanced Faction Card">
+            <span class="sop-hint">Adv.</span>
+          </div>
+          <div class="sop-card" data-zone="sop-card" data-player="1"
+               title="Advanced Faction Card">
+            <span class="sop-hint">Adv.</span>
+          </div>
+          <div class="sop-card hq-card" data-zone="sop-card" data-player="1"
+               title="HQ Card: goes to Supply when acquired, grants persistent passive abilities">
+            <span class="sop-hint">HQ</span>
+          </div>
+          <div class="sop-card hq-card" data-zone="sop-card" data-player="1"
+               title="HQ Card">
+            <span class="sop-hint">HQ</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="js/game.js"></script>
+</body>
+</html>
