@@ -1,4 +1,6 @@
 import { GameState, Action, PlayerId } from '../engine/types';
+
+export type BotFn = (state: GameState, playerId: PlayerId) => Action | null;
 import { getValidActions } from '../engine/rules';
 import { getPlayer } from '../engine/state';
 import { getCardDef } from '../engine/data/factions';
@@ -147,6 +149,18 @@ export function pickAction(state: GameState, playerId: PlayerId): Action | null 
 
   return best;
 }
+
+export function randomPickAction(state: GameState, playerId: PlayerId): Action | null {
+  const actions = getValidActions(state, playerId);
+  if (actions.length === 0) return null;
+  return actions[Math.floor(Math.random() * actions.length)];
+}
+
+// Registry keyed by version string — add new bots here when they exist
+export const BOT_REGISTRY: Record<string, BotFn> = {
+  'rule-based-v1': pickAction,
+  'random-v1': randomPickAction,
+};
 
 export async function runBotTurn(
   state: GameState,
